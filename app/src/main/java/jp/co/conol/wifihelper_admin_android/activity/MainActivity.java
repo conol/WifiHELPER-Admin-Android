@@ -32,7 +32,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
-import jp.co.conol.wifihelper_admin_lib.device_manager.GetDeviceIdsAsyncTask;
+import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -65,15 +65,18 @@ public class MainActivity extends AppCompatActivity {
         // サーバーに登録されているデバイスIDを取得
         final Handler handler = new Handler();
         if (MyUtil.Network.isConnected(this)) {
-            new GetDeviceIdsAsyncTask(new GetDeviceIdsAsyncTask.AsyncCallback() {
+            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
                 @Override
-                public void onSuccess(List<String> deviceIdList) {
+                public void onSuccess(List<List<String>> deviceIdList) {
 
                     // 接続成功してもデバイスID一覧が無ければエラー
                     if(deviceIdList == null || deviceIdList.size() == 0) {
                         showAlertDialog();
                     } else {
-                        mDeviceIds = deviceIdList;
+                        // デバイスIDのリストを作成
+                        for(int i = 0; i < deviceIdList.size(); i++) {
+                            mDeviceIds.add(deviceIdList.get(i).get(0));
+                        }
                     }
                 }
 

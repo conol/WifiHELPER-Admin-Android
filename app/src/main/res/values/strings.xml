@@ -18,17 +18,17 @@
     <string name="about_app_note">※ ご利用企業様に応じて若干見た目が異なる場合がございます。</string>
     <string name="about_app_contact">CORONAについてのお問合わせはこちら</string>
 
+    <!-- 書き込みページ -->
+    <string name="detect_corona">CORONAを検出しました！</string>
+    <string name="detect_corona_message">書き込む情報を入力して、\n再度CORONAをタップしてください</string>
+
     <!-- ダイアログ -->
     <string name="nfc_dialog">NFCがオフになっています\nNFCをオンに設定してください</string>
-    <string name="connecting_wifi_done">Wi-Fiに接続しました！\nインターネットをお楽しみください。</string>
     <string name="grant_permission">本アプリを使用するには、位置情報へのアクセスを許可する必要があります。</string>
-    <string name="wifi_dialog">Wi-Fiがオフになっています\nWi-Fiをオンに設定してもよろしいですか？</string>
-    <string name="wifi_dialog_done">Wi-Fiをオンにしました\n再度タッチしてください</string>
 
     <!-- エラー -->
     <string name="error_network_disable">利用可能なデバイス情報一覧の取得に失敗しました。\nインターネットに繋いで、アプリを再起動してください。</string>
     <string name="error_fail_get_device_ids">一覧データの取得に失敗しました。\nアプリを再起動して再取得してください。</string>
-    <string name="connecting_wifi_failed">利用出来るWi-Fiに接続出来ませんでした。\n再度お試しください。</string>
     <string name="load_devices_failed">デバイス一覧の取得に失敗しました</string>
     <string name="error_read_service_failed">このNFCではWi-Fiサービスがご利用できません。</string>
     <string name="error_not_exist_in_devise_ids">利用されたNFCは本アプリに対応していません。</string>
