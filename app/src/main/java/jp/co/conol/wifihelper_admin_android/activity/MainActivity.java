@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_android;
+package jp.co.conol.wifihelper_admin_android.activity;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -24,18 +24,16 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
+import jp.co.conol.wifihelper_admin_android.MyUtil;
+import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDeviceIdsAsyncTask;
-import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private final int PERMISSION_REQUEST_CODE = 1000;
     private ConstraintLayout mScanBackgroundConstraintLayout;
     private ConstraintLayout mScanDialogConstraintLayout;
-    private ConstraintLayout mConnectingProgressConstraintLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
         mScanBackgroundConstraintLayout = (ConstraintLayout) findViewById(R.id.ScanBackgroundConstraintLayout);
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
-        mConnectingProgressConstraintLayout = (ConstraintLayout) findViewById(R.id.connectingProgressConstraintLayout);
 
         try {
             mCoronaNfc = new CoronaNfc(this);
@@ -169,10 +165,12 @@ public class MainActivity extends AppCompatActivity {
                     // 含まれていれば処理を進める
                     else {
                         try {
-                            WifiHelper.isAvailable(serviceId);
-
-                            // TODO 書き込みページへ移動
-
+                            if(WifiHelper.isAvailable(serviceId)) {
+                                Intent writeSettingIntent = new Intent(this, WriteSettingActivity.class);
+                                startActivity(writeSettingIntent);
+                                isScanning = false;
+                                closeScanPage();
+                            }
                         }
                         // 読み込んだnfcがWifiHelperに未対応の場合
                         catch (JSONException e) {

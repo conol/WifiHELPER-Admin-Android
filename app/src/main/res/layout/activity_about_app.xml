@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="jp.co.conol.wifihelper_admin_android.AboutAppActivity">
+    tools:context="jp.co.conol.wifihelper_admin_android.activity.AboutAppActivity">
 
     <ImageView
         android:id="@+id/logoImageView"

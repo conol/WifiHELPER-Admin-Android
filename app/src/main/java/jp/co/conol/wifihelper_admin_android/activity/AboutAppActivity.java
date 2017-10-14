@@ -1,7 +1,9 @@
-package jp.co.conol.wifihelper_admin_android;
+package jp.co.conol.wifihelper_admin_android.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import jp.co.conol.wifihelper_admin_android.R;
 
 public class AboutAppActivity extends AppCompatActivity {
 

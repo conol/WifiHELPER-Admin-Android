@@ -155,7 +155,6 @@ public class CoronaNfc {
         }
         if(msg == null) throw new CNFCReaderException("Can not available WifiHelper!!");
 
-
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {
             CNFCReaderTag t = CNFCReaderTag.get(rec);
