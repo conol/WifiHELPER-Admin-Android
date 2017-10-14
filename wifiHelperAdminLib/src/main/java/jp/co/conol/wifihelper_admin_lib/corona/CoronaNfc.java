@@ -23,6 +23,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -152,6 +153,8 @@ public class CoronaNfc {
                 e.printStackTrace();
             }
         }
+        if(msg == null) throw new CNFCReaderException("Can not available WifiHelper!!");
+
 
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {

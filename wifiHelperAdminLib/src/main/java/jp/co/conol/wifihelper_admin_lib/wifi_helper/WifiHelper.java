@@ -1,5 +1,7 @@
 package jp.co.conol.wifihelper_admin_lib.wifi_helper;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,5 +28,16 @@ public class WifiHelper {
                 wifi.getInt("kind"),
                 wifi.getInt("days")
         );
+    }
+
+    public static boolean isAvailable(String targetJson) throws JSONException {
+        try {
+            JSONObject jsonObject = new JSONObject(targetJson);
+            jsonObject.getJSONObject("wifi");
+            return true;
+        } catch (JSONException e) {
+            Log.e("WifiHelper", e.toString());
+            return false;
+        }
     }
 }

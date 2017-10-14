@@ -43,9 +43,6 @@ public class MainActivity extends AppCompatActivity {
     Gson mGson = new Gson();
     Handler mScanDialogAutoCloseHandler = new Handler();
     private CoronaNfc mCoronaNfc;
-    private boolean mConnectedAp = false;  // WifiでAPに接続成功したか否か
-    private boolean mWifiStateChange = false;  // 本アプリからWifiをオンに切り替えたか否か
-    private boolean mAvailableService = false;  // 読み込んだタグがWifiHelperに対応しているか否か
     private boolean isScanning = false;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
@@ -149,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
                 tag = mCoronaNfc.getReadTagFromIntent(intent);
             } catch (CNFCReaderException e) {
                 Log.d("CNFCReader", e.toString());
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(getString(R.string.error_not_exist_in_devise_ids))
+                        .setPositiveButton(getString(R.string.ok), null)
+                        .show();
                 return;
             }
 
@@ -168,43 +169,10 @@ public class MainActivity extends AppCompatActivity {
                     // 含まれていれば処理を進める
                     else {
                         try {
-                            final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
+                            WifiHelper.isAvailable(serviceId);
 
-                            // 接続期限日時の算出
-                            final Calendar expirationDay = Calendar.getInstance();
-                            expirationDay.setTime(new Date(System.currentTimeMillis()));
-                            expirationDay.add(Calendar.DATE, wifi.getDays());
+                            // TODO 書き込みページへ移動
 
-                            // wifi設定の確認
-                            if (!WifiConnector.isEnable(getApplicationContext())) {
-                                new AlertDialog.Builder(this)
-                                        .setMessage(getString(R.string.wifi_dialog))
-                                        .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                mWifiStateChange = true;
-                                                WifiConnector.setEnable(MainActivity.this, true);
-                                                new AlertDialog.Builder(MainActivity.this)
-                                                        .setMessage(getString(R.string.wifi_dialog_done))
-                                                        .setPositiveButton(getString(R.string.ok), null)
-                                                        .show();
-                                            }
-                                        })
-                                        .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                // 読み込み画面を非表示
-                                                isScanning = false;
-                                                closeScanPage();
-                                            }
-                                        })
-                                        .show();
-                            } else {
-                                mWifiStateChange = false;
-                                connectWifi(wifi, expirationDay);
-                            }
-
-                            mAvailableService = true;
                         }
                         // 読み込んだnfcがWifiHelperに未対応の場合
                         catch (JSONException e) {
@@ -266,27 +234,6 @@ public class MainActivity extends AppCompatActivity {
         mCoronaNfc.disableForegroundDispatch(MainActivity.this);
         isScanning = false;
         closeScanPage();
-    }
-
-    private void connectWifi(Wifi wifi, Calendar expirationDay) {
-
-        // 読み込み画面を非表示（背景は残す）
-        closeScanDialog();
-
-        // wifi接続中を示すプログレスバーの表示
-        mConnectingProgressConstraintLayout.setVisibility(View.VISIBLE);
-
-        // Wifi設定
-        WifiConnector wifiConnector = new WifiConnector(
-                MainActivity.this,
-                wifi.getSsid(),
-                wifi.getPass(),
-                wifi.getKind(),
-                expirationDay
-        );
-
-        // Wifi接続
-        mConnectedAp = wifiConnector.tryConnect();
     }
 
     public void onAppAboutTextViewTapped(View view) {
