@@ -26,7 +26,7 @@
     <string name="wifi_dialog_done">Wi-Fiをオンにしました\n再度タッチしてください</string>
 
     <!-- エラー -->
-    <string name="error_network_disable">初回セットアップが必要です。\n一度インターネットに繋いで、アプリを再起動してください。</string>
+    <string name="error_network_disable">利用可能なデバイス情報一覧の取得に失敗しました。\nインターネットに繋いで、アプリを再起動してください。</string>
     <string name="error_fail_get_device_ids">一覧データの取得に失敗しました。\nアプリを再起動して再取得してください。</string>
     <string name="connecting_wifi_failed">利用出来るWi-Fiに接続出来ませんでした。\n再度お試しください。</string>
     <string name="load_devices_failed">デバイス一覧の取得に失敗しました</string>
