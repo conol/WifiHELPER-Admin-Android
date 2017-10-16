@@ -14,6 +14,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
@@ -35,7 +38,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
-public class WriteSettingActivity extends AppCompatActivity {
+public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
 
     private boolean isScanning = false;
     private Handler mScanDialogAutoCloseHandler = new Handler();
@@ -45,6 +48,7 @@ public class WriteSettingActivity extends AppCompatActivity {
     private TextView mWepTextView;
     private TextView mWpaTextView;
     private TextView mNoneTextView;
+    private Button mStartScanButton;
     private ConstraintLayout mExpireDateConstraintLayout;
     private TextView mExpireDateTextView;
     private ConstraintLayout mScanBackgroundConstraintLayout;
@@ -61,6 +65,7 @@ public class WriteSettingActivity extends AppCompatActivity {
         mWepTextView = (TextView) findViewById(R.id.wepTextView);
         mWpaTextView = (TextView) findViewById(R.id.wpaTextView);
         mNoneTextView = (TextView) findViewById(R.id.noneTextView);
+        mStartScanButton = (Button) findViewById(R.id.startScanButton);
         mExpireDateConstraintLayout = (ConstraintLayout) findViewById(R.id.expireDateConstraintLayout);
         mExpireDateTextView = (TextView) findViewById(R.id.expireDateTextView);
         mScanBackgroundConstraintLayout = (ConstraintLayout) findViewById(R.id.ScanBackgroundConstraintLayout);
@@ -97,6 +102,12 @@ public class WriteSettingActivity extends AppCompatActivity {
         if(expireDate != -1) {
             mExpireDateTextView.setText(String.valueOf(expireDate) + getString(R.string.write_expire_date_option));
         }
+
+        // ssidかpasswordが空欄ならスキャンを開始できないようにする
+        setEnableStartScanButton(mSsidEditText.getText().toString());
+        setEnableStartScanButton(mPassEditText.getText().toString());
+        mSsidEditText.addTextChangedListener(this);
+        mPassEditText.addTextChangedListener(this);
 
         // wifiの種類をクリックした場合
         View.OnClickListener wifiKindClickListener = new View.OnClickListener(){
@@ -167,6 +178,7 @@ public class WriteSettingActivity extends AppCompatActivity {
             }
         });
 
+        // スキャン画面が開いているときは、背景のタップを出来ないように設定
         mScanBackgroundConstraintLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -296,5 +308,30 @@ public class WriteSettingActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    // ssidかpasswordが空欄ならスキャンを開始できないようにする
+    @Override
+    public void afterTextChanged(Editable editable) {
+        String inputString = editable.toString();
+        setEnableStartScanButton(inputString);
+    }
+
+    private void setEnableStartScanButton(String string) {
+        if(string.length() == 0) {
+            mStartScanButton.setEnabled(false);
+            mStartScanButton.setAlpha(0.5f);
+        } else {
+            mStartScanButton.setEnabled(true);
+            mStartScanButton.setAlpha(1f);
+        }
+    }
 }
