@@ -1,19 +1,26 @@
 package jp.co.conol.wifihelper_admin_android.activity;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
+import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.NumberPicker;
@@ -24,10 +31,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.R;
+import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
+import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class WriteSettingActivity extends AppCompatActivity {
 
+    private boolean isScanning = false;
+    private Handler mScanDialogAutoCloseHandler = new Handler();
+    private CoronaNfc mCoronaNfc;
     private EditText mSsidEditText;
     private EditText mPassEditText;
     private TextView mWepTextView;
@@ -35,6 +47,9 @@ public class WriteSettingActivity extends AppCompatActivity {
     private TextView mNoneTextView;
     private ConstraintLayout mExpireDateConstraintLayout;
     private TextView mExpireDateTextView;
+    private ConstraintLayout mScanBackgroundConstraintLayout;
+    private ConstraintLayout mScanDialogConstraintLayout;
+    private final int PERMISSION_REQUEST_CODE = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +63,15 @@ public class WriteSettingActivity extends AppCompatActivity {
         mNoneTextView = (TextView) findViewById(R.id.noneTextView);
         mExpireDateConstraintLayout = (ConstraintLayout) findViewById(R.id.expireDateConstraintLayout);
         mExpireDateTextView = (TextView) findViewById(R.id.expireDateTextView);
+        mScanBackgroundConstraintLayout = (ConstraintLayout) findViewById(R.id.ScanBackgroundConstraintLayout);
+        mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
+
+        try {
+            mCoronaNfc = new CoronaNfc(this);
+        } catch (NFCNotAvailableException e) {
+            Log.d("CoronaNfc", e.toString());
+            finish();
+        }
 
         // nfcから情報を取得
         Intent intent = getIntent();
@@ -136,11 +160,81 @@ public class WriteSettingActivity extends AppCompatActivity {
                             })
                             .setNegativeButton(getString(R.string.cancel), null)
                             .show();
+                } else {
+                    mExpireDateConstraintLayout.setAlpha(1f);
                 }
                 return false;
             }
         });
 
+        mScanBackgroundConstraintLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return isScanning;
+            }
+        });
+    }
+
+    public void onStartScanButtonClicked(View view) {
+        // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要（wifi接続時）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            // 許可を求めるダイアログを表示
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION },
+                    PERMISSION_REQUEST_CODE
+            );
+
+        } else {
+            if (!isScanning) {
+
+                // nfc読み込み待機
+                mCoronaNfc.enableForegroundDispatch(WriteSettingActivity.this);
+                isScanning = true;
+                openScanPage();
+
+                // 60秒後に自動で閉じる
+                mScanDialogAutoCloseHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isScanning) {
+                            cancelScan();
+                        }
+                    }
+                }, 60000);
+            }
+        }
+    }
+
+    public void onCancelScanButtonClicked(View view) {
+        if(isScanning) {
+            cancelScan();
+
+            // 60秒後に閉じる予約をキャンセル
+            mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    private void cancelScan() {
+        // nfc読み込み待機を解除
+        mCoronaNfc.disableForegroundDispatch(WriteSettingActivity.this);
+        isScanning = false;
+        closeScanPage();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if(keyCode == KeyEvent.KEYCODE_BACK) {
+
+            // 読み込み中に戻るタップでスキャン中止
+            if(isScanning) {
+                cancelScan();
+            } else {
+                finish();
+            }
+        }
+        return false;
     }
 
     private void setWepWifi() {
@@ -170,7 +264,36 @@ public class WriteSettingActivity extends AppCompatActivity {
         mNoneTextView.setTextColor(Color.WHITE);
     }
 
+    // 読み込み画面を非表示
+    private void closeScanPage() {
+        mScanDialogConstraintLayout.setVisibility(View.GONE);
+        mScanBackgroundConstraintLayout.setVisibility(View.GONE);
+        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_to_bottom));
+        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_out_slowly));
+        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
+    }
 
+    // 読み込み画面を非表示（背景は残す）
+    private void closeScanDialog() {
+        mScanDialogConstraintLayout.setVisibility(View.GONE);
+        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_to_bottom));
+        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
+    }
+
+    // 読み込み画面を非表示（背景）
+    private void closeScanBackground() {
+        mScanBackgroundConstraintLayout.setVisibility(View.GONE);
+        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_out_slowly));
+        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
+    }
+
+    // 読み込み画面を表示
+    private void openScanPage() {
+        mScanDialogConstraintLayout.setVisibility(View.VISIBLE);
+        mScanBackgroundConstraintLayout.setVisibility(View.VISIBLE);
+        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in_from_bottom));
+        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in_slowly));
+    }
 
 
 

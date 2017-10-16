@@ -35,7 +35,7 @@
     <string name="grant_permission">本アプリを使用するには、位置情報へのアクセスを許可する必要があります。</string>
 
     <!-- エラー -->
-    <string name="error_network_disable">利用可能なデバイス情報一覧の取得に失敗しました。\nインターネットに繋いで、アプリを再起動してください。</string>
+    <string name="error_network_disable">利用可能なデバイス情報一覧の取得に失敗しました。\nインターネットに接続してください。</string>
     <string name="error_fail_get_device_ids">一覧データの取得に失敗しました。\nアプリを再起動して再取得してください。</string>
     <string name="load_devices_failed">デバイス一覧の取得に失敗しました</string>
     <string name="error_read_service_failed">このNFCではWi-Fiサービスがご利用できません。</string>

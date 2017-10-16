@@ -64,49 +64,49 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
 
-        // サーバーに登録されているデバイスIDを取得
-        final Handler handler = new Handler();
-        if (MyUtil.Network.isConnected(this)) {
-            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
-                @Override
-                public void onSuccess(List<List<String>> deviceIdList) {
-
-                    // 接続成功してもデバイスID一覧が無ければエラー
-                    if(deviceIdList == null || deviceIdList.size() == 0) {
-                        showAlertDialog();
-                    } else {
-                        // デバイスIDのリストを作成
-                        for(int i = 0; i < deviceIdList.size(); i++) {
-                            mDeviceIds.add(deviceIdList.get(i).get(0));
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    showAlertDialog();
-                }
-
-                // デバイスID取得失敗でアラートを表示
-                private void showAlertDialog() {
-                    handler.post(new Runnable() {
-                        public void run() {
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setMessage(getString(R.string.error_fail_get_device_ids))
-                                    .setPositiveButton(getString(R.string.ok), null)
-                                    .show();
-                        }
-                    });
-                }
-            }).execute();
-        }
-        // ネットに未接続の場合はエラー
-        else {
-            new AlertDialog.Builder(this)
-                    .setMessage(getString(R.string.error_network_disable))
-                    .setPositiveButton(getString(R.string.ok), null)
-                    .show();
-        }
+//        // サーバーに登録されているデバイスIDを取得
+//        final Handler handler = new Handler();
+//        if (MyUtil.Network.isConnected(this)) {
+//            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
+//                @Override
+//                public void onSuccess(List<List<String>> deviceIdList) {
+//
+//                    // 接続成功してもデバイスID一覧が無ければエラー
+//                    if(deviceIdList == null || deviceIdList.size() == 0) {
+//                        showAlertDialog();
+//                    } else {
+//                        // デバイスIDのリストを作成
+//                        for(int i = 0; i < deviceIdList.size(); i++) {
+//                            mDeviceIds.add(deviceIdList.get(i).get(0));
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Exception e) {
+//                    showAlertDialog();
+//                }
+//
+//                // デバイスID取得失敗でアラートを表示
+//                private void showAlertDialog() {
+//                    handler.post(new Runnable() {
+//                        public void run() {
+//                            new AlertDialog.Builder(MainActivity.this)
+//                                    .setMessage(getString(R.string.error_fail_get_device_ids))
+//                                    .setPositiveButton(getString(R.string.ok), null)
+//                                    .show();
+//                        }
+//                    });
+//                }
+//            }).execute();
+//        }
+//        // ネットに未接続の場合はエラー
+//        else {
+//            new AlertDialog.Builder(this)
+//                    .setMessage(getString(R.string.error_network_disable))
+//                    .setPositiveButton(getString(R.string.ok), null)
+//                    .show();
+//        }
 
         // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -138,58 +138,106 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(final Intent intent) {
         if(isScanning) {
-            CNFCReaderTag tag = null;
 
-            try {
-                tag = mCoronaNfc.getReadTagFromIntent(intent);
-            } catch (CNFCReaderException e) {
-                Log.d("CNFCReader", e.toString());
-                new AlertDialog.Builder(MainActivity.this)
-                        .setMessage(getString(R.string.error_not_exist_in_devise_ids))
-                        .setPositiveButton(getString(R.string.ok), null)
-                        .show();
-                return;
-            }
+            // サーバーに登録されているデバイスIDを取得
+            final Handler handler = new Handler();
+            if (MyUtil.Network.isConnected(this)) {
+                new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
+                    @Override
+                    public void onSuccess(List<List<String>> deviceIdList) {
 
-            if (tag != null) {
-                String deviceId = tag.getChipIdString().toLowerCase();
-                String serviceId = tag.getServiceIdString();
-//                Toast.makeText(this, "deviceId=" + chipId + "\njson=" + serviceId, Toast.LENGTH_LONG).show();
-
-                // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
-                if(mDeviceIds != null) {
-                    if (!mDeviceIds.contains(deviceId)) {
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setMessage(getString(R.string.error_not_exist_in_devise_ids))
-                                .setPositiveButton(getString(R.string.ok), null)
-                                .show();
-                    }
-                    // 含まれていれば処理を進める
-                    else {
-                        try {
-                            final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
-
-                            Intent writeSettingIntent = new Intent(this, WriteSettingActivity.class);
-                            writeSettingIntent.putExtra("ssid", wifi.getSsid());
-                            writeSettingIntent.putExtra("pass", wifi.getPass());
-                            writeSettingIntent.putExtra("wifiKind", wifi.getKind());
-                            writeSettingIntent.putExtra("expireDate", wifi.getDays());
-                            startActivity(writeSettingIntent);
-                            isScanning = false;
-                            closeScanPage();
+                        // 接続成功してもデバイスID一覧が無ければエラー
+                        if(deviceIdList == null || deviceIdList.size() == 0) {
+                            showAlertDialog();
+                            return;
+                        } else {
+                            // デバイスIDのリストを作成
+                            for(int i = 0; i < deviceIdList.size(); i++) {
+                                mDeviceIds.add(deviceIdList.get(i).get(0));
+                            }
                         }
-                        // 読み込んだnfcがWifiHelperに未対応の場合
-                        catch (JSONException e) {
-                            e.printStackTrace();
+
+                        // nfc読み込み処理実行
+                        CNFCReaderTag tag = null;
+
+                        try {
+                            tag = mCoronaNfc.getReadTagFromIntent(intent);
+                        } catch (CNFCReaderException e) {
+                            Log.d("CNFCReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
-                                    .setMessage(getString(R.string.error_read_service_failed))
+                                    .setMessage(getString(R.string.error_not_exist_in_devise_ids))
                                     .setPositiveButton(getString(R.string.ok), null)
                                     .show();
+                            return;
                         }
+
+                        if (tag != null) {
+                            String deviceId = tag.getChipIdString().toLowerCase();
+                            String serviceId = tag.getServiceIdString();
+//                Toast.makeText(this, "deviceId=" + chipId + "\njson=" + serviceId, Toast.LENGTH_LONG).show();
+
+                            // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
+                            if(mDeviceIds != null) {
+                                if (!mDeviceIds.contains(deviceId)) {
+                                    new AlertDialog.Builder(MainActivity.this)
+                                            .setMessage(getString(R.string.error_not_exist_in_devise_ids))
+                                            .setPositiveButton(getString(R.string.ok), null)
+                                            .show();
+                                }
+                                // 含まれていれば処理を進める
+                                else {
+                                    try {
+                                        final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
+
+                                        Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
+                                        writeSettingIntent.putExtra("ssid", wifi.getSsid());
+                                        writeSettingIntent.putExtra("pass", wifi.getPass());
+                                        writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+                                        writeSettingIntent.putExtra("expireDate", wifi.getDays());
+                                        startActivity(writeSettingIntent);
+                                        isScanning = false;
+                                        closeScanPage();
+                                    }
+                                    // 読み込んだnfcがWifiHelperに未対応の場合
+                                    catch (JSONException e) {
+                                        e.printStackTrace();
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setMessage(getString(R.string.error_read_service_failed))
+                                                .setPositiveButton(getString(R.string.ok), null)
+                                                .show();
+                                    }
+                                }
+                            }
+                        }
+
                     }
-                }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        showAlertDialog();
+                    }
+
+                    // デバイスID取得失敗でアラートを表示
+                    private void showAlertDialog() {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setMessage(getString(R.string.error_fail_get_device_ids))
+                                        .setPositiveButton(getString(R.string.ok), null)
+                                        .show();
+                            }
+                        });
+                    }
+                }).execute();
+            }
+            // ネットに未接続の場合はエラー
+            else {
+                new AlertDialog.Builder(this)
+                        .setMessage(getString(R.string.error_network_disable))
+                        .setPositiveButton(getString(R.string.ok), null)
+                        .show();
             }
         }
     }
