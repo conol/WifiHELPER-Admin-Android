@@ -34,6 +34,7 @@ public class WriteSettingActivity extends AppCompatActivity {
     private TextView mWpaTextView;
     private TextView mNoneTextView;
     private ConstraintLayout mExpireDateConstraintLayout;
+    private TextView mExpireDateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +47,14 @@ public class WriteSettingActivity extends AppCompatActivity {
         mWpaTextView = (TextView) findViewById(R.id.wpaTextView);
         mNoneTextView = (TextView) findViewById(R.id.noneTextView);
         mExpireDateConstraintLayout = (ConstraintLayout) findViewById(R.id.expireDateConstraintLayout);
+        mExpireDateTextView = (TextView) findViewById(R.id.expireDateTextView);
 
         // nfcから情報を取得
         Intent intent = getIntent();
         String ssid = intent.getStringExtra("ssid");
         String pass = intent.getStringExtra("pass");
         int wifiKind = intent.getIntExtra("wifiKind", 1);
+        final int expireDate = intent.getIntExtra("expireDate", -1);
 
         // nfcからの情報をセット
         mSsidEditText.setText(ssid);
@@ -66,6 +69,9 @@ public class WriteSettingActivity extends AppCompatActivity {
             default:
                 setNoneWifi();
                 break;
+        }
+        if(expireDate != -1) {
+            mExpireDateTextView.setText(String.valueOf(expireDate) + getString(R.string.write_expire_date_option));
         }
 
         // wifiの種類をクリックした場合
@@ -88,14 +94,21 @@ public class WriteSettingActivity extends AppCompatActivity {
         // 期限日付選択時のダイアログ
         final String[] expireDays = new String[365];
         for(int i = 0; i < expireDays.length; i++) {
-            expireDays[i] = String.valueOf(i + 1) + "日";
+            expireDays[i] = String.valueOf(i + 1) + getString(R.string.write_expire_date_option);
         }
-        final int defaultItem = 0;
-        final List<Integer> checkedItems = new ArrayList<>();
-        checkedItems.add(defaultItem);
         mExpireDateConstraintLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                int defaultItem;
+                if(mExpireDateTextView.getText() == getString(R.string.write_expire_date)) {
+                    defaultItem = 0;
+                } else {
+                    defaultItem = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
+                }
+                final List<Integer> checkedItems = new ArrayList<>();
+                checkedItems.add(defaultItem);
+
                 // タップした時
                 if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                     mExpireDateConstraintLayout.setAlpha(0.5f);
@@ -105,7 +118,7 @@ public class WriteSettingActivity extends AppCompatActivity {
                     mExpireDateConstraintLayout.setAlpha(1f);
                     new AlertDialog.Builder(WriteSettingActivity.this)
                             .setTitle(getString(R.string.write_expire_date_title))
-                            .setSingleChoiceItems(expireDays, defaultItem, new DialogInterface.OnClickListener() {
+                            .setSingleChoiceItems(expireDays, defaultItem - 1, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     checkedItems.clear();
@@ -116,7 +129,8 @@ public class WriteSettingActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (!checkedItems.isEmpty()) {
-                                        Log.d("checkedItem:", "" + checkedItems.get(0));
+                                        String checkedDate = String.valueOf(Integer.parseInt(checkedItems.get(0).toString()) + 1);
+                                        mExpireDateTextView.setText(checkedDate + getString(R.string.write_expire_date_option));
                                     }
                                 }
                             })

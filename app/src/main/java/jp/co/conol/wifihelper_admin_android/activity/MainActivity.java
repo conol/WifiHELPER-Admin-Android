@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
-
             }).execute();
         }
         // ネットに未接続の場合はエラー
@@ -176,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
                             writeSettingIntent.putExtra("ssid", wifi.getSsid());
                             writeSettingIntent.putExtra("pass", wifi.getPass());
                             writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+                            writeSettingIntent.putExtra("expireDate", wifi.getDays());
                             startActivity(writeSettingIntent);
                             isScanning = false;
                             closeScanPage();

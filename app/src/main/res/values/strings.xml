@@ -28,6 +28,7 @@
     <string name="write_kind_none">None</string>
     <string name="write_expire_date">日数を選択してください</string>
     <string name="write_expire_date_title">Wi-Fi有効期限日数</string>
+    <string name="write_expire_date_option">日</string> <!-- Wi-Fi有効期限日数の単位 -->
 
     <!-- ダイアログ -->
     <string name="nfc_dialog">NFCがオフになっています\nNFCをオンに設定してください</string>
