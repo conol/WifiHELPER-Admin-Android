@@ -192,8 +192,7 @@ public class WifiConnector {
                             mWifiManager.enableNetwork(confExist.networkId, false);
                         }
 
-                        mWifiManager.enableNetwork(mNetworkId, true);
-                        return true;
+                        return mWifiManager.enableNetwork(mNetworkId, true);
                     }
                     break;
                 }

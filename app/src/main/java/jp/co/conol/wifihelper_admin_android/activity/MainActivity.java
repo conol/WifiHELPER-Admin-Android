@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private CoronaNfc mCoronaNfc;
     private boolean isScanning = false;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
+    List<Integer> mDeviceTypes = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのタイプ一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
     private ConstraintLayout mScanBackgroundConstraintLayout;
     private ConstraintLayout mScanDialogConstraintLayout;
@@ -112,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                             // デバイスIDのリストを作成
                             for(int i = 0; i < deviceIdList.size(); i++) {
                                 mDeviceIds.add(deviceIdList.get(i).get(0));
+                                mDeviceTypes.add(Integer.parseInt(deviceIdList.get(i).get(1)));
                             }
                         }
 
@@ -144,6 +146,9 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 // 含まれていれば処理を進める
                                 else {
+                                    // デバイスのタイプを取得
+                                    int deviceType = mDeviceTypes.get(mDeviceIds.indexOf(deviceId));
+
                                     try {
                                         final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
 
@@ -152,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                                         writeSettingIntent.putExtra("pass", wifi.getPass());
                                         writeSettingIntent.putExtra("wifiKind", wifi.getKind());
                                         writeSettingIntent.putExtra("expireDate", wifi.getDays());
+                                        writeSettingIntent.putExtra("deviceType", deviceType);
                                         startActivity(writeSettingIntent);
                                         isScanning = false;
                                         closeScanPage();

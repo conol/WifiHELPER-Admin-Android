@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +46,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     private Handler mScanDialogAutoCloseHandler = new Handler();
     private CoronaNfc mCoronaNfc;
     private int mWifiKind;
+    private int mDeviceType;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private EditText mSsidEditText;
     private EditText mPassEditText;
@@ -54,6 +56,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     private Button mStartScanButton;
     private ConstraintLayout mExpireDateConstraintLayout;
     private TextView mExpireDateTextView;
+    private ImageView mCoronaImageView;
     private ConstraintLayout mScanBackgroundConstraintLayout;
     private ConstraintLayout mScanDialogConstraintLayout;
     private final int PERMISSION_REQUEST_CODE = 1000;
@@ -71,6 +74,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mStartScanButton = (Button) findViewById(R.id.startScanButton);
         mExpireDateConstraintLayout = (ConstraintLayout) findViewById(R.id.expireDateConstraintLayout);
         mExpireDateTextView = (TextView) findViewById(R.id.expireDateTextView);
+        mCoronaImageView = (ImageView) findViewById(R.id.coronaImageView);
         mScanBackgroundConstraintLayout = (ConstraintLayout) findViewById(R.id.ScanBackgroundConstraintLayout);
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
 
@@ -87,6 +91,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         final String pass = intent.getStringExtra("pass");
         final int wifiKind = intent.getIntExtra("wifiKind", 1);
         final int expireDate = intent.getIntExtra("expireDate", 0);
+        mDeviceType = intent.getIntExtra("deviceType", 2);
 
         // nfcからの情報をセット
         mSsidEditText.setText(ssid);
@@ -107,6 +112,11 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             mExpireDateTextView.setText(String.valueOf(expireDate) + getString(R.string.write_expire_date_option));
         } else {
             mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
+        }
+        if(mDeviceType == 1) {
+            mCoronaImageView.setImageResource(R.drawable.img_corona);
+        } else {
+            mCoronaImageView.setImageResource(R.drawable.img_nfc);
         }
 
         // ssidかpasswordが空欄ならスキャンを開始できないようにする
@@ -254,6 +264,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                             writeDoneIntent.putExtra("pass", pass);
                             writeDoneIntent.putExtra("wifiKind", mWifiKind);
                             writeDoneIntent.putExtra("expireDate", expireDate);
+                            writeDoneIntent.putExtra("deviceType", mDeviceType);
                             startActivity(writeDoneIntent);
 
                             isScanning = false;

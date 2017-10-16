@@ -246,6 +246,7 @@ public class CoronaNfc {
             ndef.connect();
             msg = ndef.getNdefMessage();
         } catch (IOException | FormatException e) {
+            Log.d("CNFCReaderException", e.toString());
             throw new CNFCReaderException(e);
         } finally {
             try {

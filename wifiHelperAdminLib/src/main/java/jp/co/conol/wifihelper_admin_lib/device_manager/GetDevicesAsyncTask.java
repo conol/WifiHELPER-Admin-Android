@@ -45,8 +45,7 @@ public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jRec = jsonArray.getJSONObject(i);
                     String deviceId = jRec.getString("device_id").replace(" ", "").toLowerCase();
-//                    String deviceType = jRec.getString("device_type"); TODO サーバー実装後こっち使う
-                    String deviceType = "seal";
+                    String deviceType = jRec.getString("device_type");
                     devicesList.add(Arrays.asList(deviceId, deviceType));
                 }
 
