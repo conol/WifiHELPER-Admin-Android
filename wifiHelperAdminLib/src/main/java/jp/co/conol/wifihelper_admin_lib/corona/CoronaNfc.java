@@ -77,6 +77,29 @@ public class CoronaNfc {
                 new String[]{NfcA.class.getName(), IsoDep.class.getName()},
                 new String[]{NfcA.class.getName(), MifareUltralight.class.getName()}
         };
+
+        // 本体に登録されているログを取得（2次元配列）
+        Gson gson = new Gson();
+        final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
+        String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
+
+        // ネットに繋がっていればログの送信
+        if(savedLog != null && (Util.Network.isConnected(context) || WifiConnector.isEnable(context))) {
+            new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+                @Override
+                public void onSuccess(JSONObject responseJson) {
+                    // 保存されているログは削除
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("savedLog", null);
+                    editor.apply();
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Log.d("SendLogFailure", e.toString());
+                }
+            }).execute(savedLog);
+        }
     }
 
     public boolean isEnable() {
@@ -286,12 +309,11 @@ public class CoronaNfc {
                 sb.insert(4," ");
                 sb.insert(2," ");
 
-                Gson gson = new Gson();
-
                 // 現在のログを作成
                 String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, "Read"};
 
                 // 本体に登録されているログを取得（2次元配列）
+                Gson gson = new Gson();
                 final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
                 String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
 
