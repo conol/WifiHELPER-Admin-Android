@@ -91,7 +91,7 @@ public class CoronaNfc {
         nfcAdapter.disableForegroundDispatch(activity);
     }
 
-    public CNFCTag getWriteTagFromIntent(Intent intent) {
+    public CNFCTag getWriteTagFromIntent(Intent intent) throws CNFCReaderException {
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -111,6 +111,104 @@ public class CoronaNfc {
                 */
                 MifareUltralight mul = MifareUltralight.get(tag);
                 if (mul != null) {
+
+                    // 以下からログ送信に必要
+
+                    Ndef ndef = Ndef.get(tag);
+                    if (ndef == null) {
+                        throw new CNFCReaderException("Not NDEF tag");
+                    }
+
+                    NdefMessage msg;
+                    try {
+                        ndef.connect();
+                        msg = ndef.getNdefMessage();
+                    } catch (IOException | FormatException e) {
+                        throw new CNFCReaderException(e);
+                    } finally {
+                        try {
+                            ndef.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(msg == null) throw new CNFCReaderException("Can not available WifiHelper!!");
+
+                    NdefRecord[] records = msg.getRecords();
+                    for (NdefRecord rec : records) {
+                        CNFCReaderTag t = CNFCReaderTag.get(rec);
+                        if (t != null) {
+
+                            // 現在時間の作成
+                            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                            sdf.setTimeZone(cal.getTimeZone());
+                            String currentDateTime = sdf.format(cal.getTime());
+
+                            // 位置情報の取得
+                            GetLocation location = new GetLocation(context);
+                            String locationInfo = "";
+                            if(location.getCurrentLocation() != null) {
+                                locationInfo = String.valueOf(location.getCurrentLocation().getLatitude()) + "," + String.valueOf(location.getCurrentLocation().getLongitude());
+                            }
+
+                            // デバイスIDに空白を入れる
+                            // TODO 16進数でなくなるとこの部分削除
+                            String str = t.getChipIdString();
+                            StringBuilder sb = new StringBuilder(str);
+                            sb.insert(12," ");
+                            sb.insert(10," ");
+                            sb.insert(8," ");
+                            sb.insert(6," ");
+                            sb.insert(4," ");
+                            sb.insert(2," ");
+
+                            Gson gson = new Gson();
+
+                            // 現在のログを作成
+                            String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, "Write"};
+
+                            // 本体に登録されているログを取得（2次元配列）
+                            final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
+                            String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
+
+                            // サーバーに送信するためのログを作成
+                            int toSendLogLength = 1;
+                            if(savedLog != null) {
+                                toSendLogLength += savedLog.length;
+                            }
+                            String toSendLog[][] = new String[toSendLogLength][currentLog.length];
+                            toSendLog[0] = currentLog;
+                            if(savedLog != null) {
+                                System.arraycopy(savedLog, 0, toSendLog, 1, toSendLogLength - 1);
+                            }
+
+                            // ネットに繋がっていればログの送信
+                            if(Util.Network.isConnected(context) || WifiConnector.isEnable(context)) {
+                                new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+                                    @Override
+                                    public void onSuccess(JSONObject responseJson) {
+                                        // 保存されているログは削除
+                                        SharedPreferences.Editor editor = pref.edit();
+                                        editor.putString("savedLog", null);
+                                        editor.apply();
+                                    }
+
+                                    @Override
+                                    public void onFailure(Exception e) {
+                                        Log.d("SendLogFailure", e.toString());
+                                    }
+                                }).execute(toSendLog);
+                            }
+                            // ネットに繋がっていなければログを保存
+                            else {
+                                SharedPreferences.Editor editor = pref.edit();
+                                editor.putString("savedLog", gson.toJson(toSendLog));
+                                editor.apply();
+                            }
+                        }
+                    }
+
                     return new CNFCT2Tag(mul);
                 }
             }
@@ -135,6 +233,8 @@ public class CoronaNfc {
         if (tag == null) {
             return null;
         }
+
+        // 以下からログ送信に必要
 
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {

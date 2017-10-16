@@ -1,7 +1,6 @@
 package jp.co.conol.wifihelper_admin_android.activity;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,20 +17,13 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.NumberPicker;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,11 +35,9 @@ import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
 
@@ -96,7 +86,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         final String ssid = intent.getStringExtra("ssid");
         final String pass = intent.getStringExtra("pass");
         final int wifiKind = intent.getIntExtra("wifiKind", 1);
-        final int expireDate = intent.getIntExtra("expireDate", -1);
+        final int expireDate = intent.getIntExtra("expireDate", 0);
 
         // nfcからの情報をセット
         mSsidEditText.setText(ssid);
@@ -141,9 +131,13 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mNoneTextView.setOnClickListener(wifiKindClickListener);
 
         // 期限日付選択時のダイアログ
-        final String[] expireDays = new String[365];
+        final String[] expireDays = new String[366];
         for(int i = 0; i < expireDays.length; i++) {
-            expireDays[i] = String.valueOf(i + 1) + getString(R.string.write_expire_date_option);
+            if(i == 0) {
+                expireDays[i] = getString(R.string.write_expire_date_unlimited);
+            } else {
+                expireDays[i] = String.valueOf(i) + getString(R.string.write_expire_date_option);
+            }
         }
         mExpireDateConstraintLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -167,7 +161,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     mExpireDateConstraintLayout.setAlpha(1f);
                     new AlertDialog.Builder(WriteSettingActivity.this)
                             .setTitle(getString(R.string.write_expire_date_title))
-                            .setSingleChoiceItems(expireDays, defaultItem - 1, new DialogInterface.OnClickListener() {
+                            .setSingleChoiceItems(expireDays, defaultItem, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     checkedItems.clear();
@@ -178,8 +172,12 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (!checkedItems.isEmpty()) {
-                                        String checkedDate = String.valueOf(Integer.parseInt(checkedItems.get(0).toString()) + 1);
-                                        mExpireDateTextView.setText(checkedDate + getString(R.string.write_expire_date_option));
+                                        String checkedDate = String.valueOf(Integer.parseInt(checkedItems.get(0).toString()));
+                                        if(checkedDate.equals("0")) {
+                                            mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
+                                        } else {
+                                            mExpireDateTextView.setText(checkedDate + getString(R.string.write_expire_date_option));
+                                        }
                                     }
                                 }
                             })
@@ -225,9 +223,19 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     // 入力されている設定の取得
                     final String ssid = String.valueOf(mSsidEditText.getText());
                     final String pass = String.valueOf(mPassEditText.getText());
-                    final int expireDate = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
+                    final int expireDate;
+                    if(!mExpireDateTextView.getText().toString().equals(getString(R.string.write_expire_date_unlimited))) {
+                        expireDate = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
+                    } else {
+                        expireDate = 0;
+                    }
 
-                    CNFCTag tag = mCoronaNfc.getWriteTagFromIntent(intent);
+                    CNFCTag tag = null;
+                    try {
+                        tag = mCoronaNfc.getWriteTagFromIntent(intent);
+                    } catch (CNFCReaderException e) {
+                        e.printStackTrace();
+                    }
 
                     if (tag != null) {
 

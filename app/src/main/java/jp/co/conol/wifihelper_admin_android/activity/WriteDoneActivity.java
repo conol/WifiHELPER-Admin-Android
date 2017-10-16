@@ -32,7 +32,7 @@ public class WriteDoneActivity extends AppCompatActivity {
         String ssid = intent.getStringExtra("ssid");
         String pass = intent.getStringExtra("pass");
         int wifiKind = intent.getIntExtra("wifiKind", 1);
-        int expireDate = intent.getIntExtra("expireDate", -1);
+        int expireDate = intent.getIntExtra("expireDate", 0);
 
         // 設定の表示
         mSsidTextView.setText(ssid);
