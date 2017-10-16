@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 
 import org.json.JSONException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +35,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -168,12 +170,15 @@ public class MainActivity extends AppCompatActivity {
                     // 含まれていれば処理を進める
                     else {
                         try {
-                            if(WifiHelper.isAvailable(serviceId)) {
-                                Intent writeSettingIntent = new Intent(this, WriteSettingActivity.class);
-                                startActivity(writeSettingIntent);
-                                isScanning = false;
-                                closeScanPage();
-                            }
+                            final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
+
+                            Intent writeSettingIntent = new Intent(this, WriteSettingActivity.class);
+                            writeSettingIntent.putExtra("ssid", wifi.getSsid());
+                            writeSettingIntent.putExtra("pass", wifi.getPass());
+                            writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+                            startActivity(writeSettingIntent);
+                            isScanning = false;
+                            closeScanPage();
                         }
                         // 読み込んだnfcがWifiHelperに未対応の場合
                         catch (JSONException e) {

@@ -1,95 +1,273 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="jp.co.conol.wifihelper_admin_android.activity.WriteSettingActivity">
 
-    <ImageView
-        android:id="@+id/logoImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_logo" />
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/logoTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/app_name_main"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoImageView" />
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:layout_constraintHorizontal_bias="0.501"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_logo" />
 
-    <TextView
-        android:id="@+id/subLogoTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:background="@drawable/style_black_round"
-        android:paddingBottom="5dp"
-        android:paddingEnd="20dp"
-        android:paddingStart="20dp"
-        android:paddingTop="5dp"
-        android:text="@string/app_name_sub"
-        android:textColor="@color/darkWhite"
-        android:textSize="16sp"
-        app:layout_constraintHorizontal_bias="0.501"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoTextView" />
+        <TextView
+            android:id="@+id/logoTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/app_name_main"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/logoImageView"
+            android:focusable="true"
+            android:focusableInTouchMode="true" >
+            <requestFocus />
+        </TextView>
 
-    <ImageView
-        android:id="@+id/coronaImageView"
-        android:layout_width="130dp"
-        android:layout_height="100dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/subLogoTextView"
-        app:srcCompat="@drawable/img_corona" />
+        <TextView
+            android:id="@+id/subLogoTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/style_black_round"
+            android:paddingBottom="5dp"
+            android:paddingEnd="20dp"
+            android:paddingStart="20dp"
+            android:paddingTop="5dp"
+            android:text="@string/app_name_sub"
+            android:textColor="@color/darkWhite"
+            android:textSize="16sp"
+            app:layout_constraintHorizontal_bias="0.501"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/logoTextView" />
 
-    <TextView
-        android:id="@+id/detectTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/detect_corona"
-        android:textAlignment="center"
-        android:textColor="@color/darkGray"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/coronaImageView" />
+        <ImageView
+            android:id="@+id/coronaImageView"
+            android:layout_width="130dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/subLogoTextView"
+            app:srcCompat="@drawable/img_corona" />
 
-    <TextView
-        android:id="@+id/detectMessageTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/detect_corona_message"
-        android:textAlignment="center"
-        android:textSize="12sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detectTextView" />
+        <TextView
+            android:id="@+id/detectTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/detect_corona"
+            android:textAlignment="center"
+            android:textColor="@color/darkGray"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintHorizontal_bias="0.502"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/coronaImageView" />
 
-</android.support.constraint.ConstraintLayout>
+        <TextView
+            android:id="@+id/detectMessageTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/detect_corona_message"
+            android:textAlignment="center"
+            android:textSize="12sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/detectTextView" />
+
+        <EditText
+            android:id="@+id/ssidEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/style_white_round"
+            android:ems="10"
+            android:hint="@string/write_ssid"
+            android:inputType="textPersonName"
+            android:padding="12dp"
+            android:textAlignment="center"
+            android:textColor="@color/darkGray"
+            android:textSize="14sp"
+            app:layout_constraintTop_toBottomOf="@+id/detectMessageTextView"
+            android:layout_marginLeft="32dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginRight="32dp"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp" />
+
+        <EditText
+            android:id="@+id/passEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/style_white_round"
+            android:ems="10"
+            android:hint="@string/write_pass"
+            android:inputType="textPersonName"
+            android:padding="12dp"
+            android:textAlignment="center"
+            android:textColor="@color/darkGray"
+            android:textSize="14sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/ssidEditText"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp" />
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/kindConstraintLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/style_white_round"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/passEditText"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp">
+
+            <TextView
+                android:id="@+id/wepTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingBottom="12dp"
+                android:paddingStart="13dp"
+                android:paddingTop="12dp"
+                android:text="@string/write_kind_wep"
+                android:textAlignment="center"
+                android:textColor="@color/darkGray"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/wpaTextView"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/wpaTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/style_wpa_button_disable"
+                android:paddingBottom="12dp"
+                android:paddingTop="12dp"
+                android:text="@string/write_kind_wap"
+                android:textAlignment="center"
+                android:textColor="@color/darkGray"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@+id/wepTextView"
+                app:layout_constraintRight_toLeftOf="@+id/noneTextView"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/noneTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingBottom="12dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="12dp"
+                android:text="@string/write_kind_none"
+                android:textAlignment="center"
+                android:textColor="@color/darkGray"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@+id/wpaTextView"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/expireDateConstraintLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:background="@drawable/style_white_round"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/kindConstraintLayout">
+
+            <TextView
+                android:id="@+id/expireDateTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
+                android:paddingBottom="12dp"
+                android:paddingStart="13dp"
+                android:paddingTop="12dp"
+                android:text="@string/write_expire_date"
+                android:textAlignment="center"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/dropDownimageView"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginBottom="0dp"
+                android:layout_marginRight="0dp"
+                android:layout_marginTop="0dp"
+                android:tint="@color/lightGray"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_arrow_drop_down_black_24dp" />
+
+        </android.support.constraint.ConstraintLayout>
+
+        <Button
+            android:id="@+id/startScanButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/colorPrimaryDark"
+            android:onClick="onStartScanButtonClicked"
+            android:paddingBottom="24dp"
+            android:paddingTop="24dp"
+            android:text="@string/start_reading"
+            android:textColor="@android:color/white"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/expireDateConstraintLayout"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp" />
+
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</ScrollView>
+

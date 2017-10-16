@@ -23,6 +23,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.WriteSettingActivity"
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:screenOrientation="portrait" />
     </application>
 

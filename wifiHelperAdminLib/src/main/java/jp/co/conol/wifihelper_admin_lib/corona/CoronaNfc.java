@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
@@ -161,8 +162,10 @@ public class CoronaNfc {
             if (t != null) {
 
                 // 現在時間の作成
-                Calendar cal = Calendar.getInstance();
-                String currentDateTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.JAPAN).format(cal.getTime());
+                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                sdf.setTimeZone(cal.getTimeZone());
+                String currentDateTime = sdf.format(cal.getTime());
 
                 // 位置情報の取得
                 GetLocation location = new GetLocation(context);

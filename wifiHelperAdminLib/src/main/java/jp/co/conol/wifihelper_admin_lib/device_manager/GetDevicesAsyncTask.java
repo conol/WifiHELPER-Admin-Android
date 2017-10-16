@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -44,9 +45,9 @@ public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jRec = jsonArray.getJSONObject(i);
                     String deviceId = jRec.getString("device_id").replace(" ", "").toLowerCase();
-                    String deviceType = jRec.getString("device_type");
-                    devicesList.get(i).add(deviceId);
-                    devicesList.get(i).add(deviceType);
+//                    String deviceType = jRec.getString("device_type"); TODO サーバー実装後こっち使う
+                    String deviceType = "seal";
+                    devicesList.add(Arrays.asList(deviceId, deviceType));
                 }
 
             } catch (JSONException e) {
