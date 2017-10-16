@@ -350,6 +350,14 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         closeScanPage();
     }
 
+    public void onSsidEditViewClearClicked(View view) {
+        mSsidEditText.setText("");
+    }
+
+    public void onPassEditViewClearClicked(View view) {
+        mPassEditText.setText("");
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK) {

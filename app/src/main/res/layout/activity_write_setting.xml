@@ -122,16 +122,34 @@
                 android:layout_marginTop="32dp"
                 android:background="@drawable/style_white_round"
                 android:ems="10"
-                android:maxLength="50"
                 android:hint="@string/write_ssid"
                 android:inputType="textPersonName"
-                android:padding="12dp"
+                android:maxLength="50"
+                android:paddingBottom="12dp"
+                android:paddingLeft="38dp"
+                android:paddingRight="38dp"
+                android:paddingTop="12dp"
                 android:textAlignment="center"
                 android:textColor="@color/darkGray"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/detectMessageTextView" />
+
+            <ImageView
+                android:id="@+id/ssidEditViewClear"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginBottom="0dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="0dp"
+                android:tint="@color/darkWhite"
+                android:clickable="true"
+                android:onClick="onSsidEditViewClearClicked"
+                app:layout_constraintBottom_toBottomOf="@+id/ssidEditText"
+                app:layout_constraintRight_toRightOf="@+id/ssidEditText"
+                app:layout_constraintTop_toTopOf="@+id/ssidEditText"
+                app:srcCompat="@drawable/ic_cancel_black_24dp" />
 
             <EditText
                 android:id="@+id/passEditText"
@@ -147,13 +165,31 @@
                 android:maxLength="50"
                 android:hint="@string/write_pass"
                 android:inputType="textPersonName"
-                android:padding="12dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:paddingLeft="38dp"
+                android:paddingRight="38dp"
                 android:textAlignment="center"
                 android:textColor="@color/darkGray"
                 android:textSize="14sp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/ssidEditText" />
+
+            <ImageView
+                android:id="@+id/passEditViewClear"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:tint="@color/darkWhite"
+                android:clickable="true"
+                android:onClick="onPassEditViewClearClicked"
+                app:layout_constraintBottom_toBottomOf="@+id/passEditText"
+                app:layout_constraintRight_toRightOf="@+id/passEditText"
+                app:layout_constraintTop_toTopOf="@+id/passEditText"
+                app:srcCompat="@drawable/ic_cancel_black_24dp" />
 
             <android.support.constraint.ConstraintLayout
                 android:id="@+id/kindConstraintLayout"
