@@ -24,7 +24,7 @@
     <string name="write_ssid">SSIDを入力してください</string>
     <string name="write_pass">パスワードを入力してください</string>
     <string name="write_kind_wep">WEP</string>
-    <string name="write_kind_wap">WPA/WPA2</string>
+    <string name="write_kind_wpa">WPA/WPA2</string>
     <string name="write_kind_none">None</string>
     <string name="write_expire_date">日数を選択してください</string>
     <string name="write_expire_date_title">Wi-Fi有効期限日数</string>

@@ -239,6 +239,10 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                             tag.writeServiceID(serviceId);
 
                             Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
+                            writeDoneIntent.putExtra("ssid", ssid);
+                            writeDoneIntent.putExtra("pass", pass);
+                            writeDoneIntent.putExtra("wifiKind", mWifiKind);
+                            writeDoneIntent.putExtra("expireDate", expireDate);
                             startActivity(writeDoneIntent);
 
                             isScanning = false;
