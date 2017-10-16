@@ -30,6 +30,15 @@
     <string name="write_expire_date_title">Wi-Fi有効期限日数</string>
     <string name="write_expire_date_option">日</string> <!-- Wi-Fi有効期限日数の単位 -->
 
+    <!-- 書き込み完了ページ -->
+    <string name="done_write">設定が完了しました！</string>
+    <string name="done_write_message">入力された情報が設定されました</string>
+    <string name="done_ssid">SSID</string>
+    <string name="done_pass">PASS</string>
+    <string name="done_wifi_kind">TYPE</string>
+    <string name="done_expire_date">DAYS</string>
+    <string name="back_to_top_button">最初の画面へ戻る</string>
+
     <!-- ダイアログ -->
     <string name="nfc_dialog">NFCがオフになっています\nNFCをオンに設定してください</string>
     <string name="grant_permission">本アプリを使用するには、位置情報へのアクセスを許可する必要があります。</string>

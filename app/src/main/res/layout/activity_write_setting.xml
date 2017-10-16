@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     tools:context="jp.co.conol.wifihelper_admin_android.activity.WriteSettingActivity">
 
-
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -280,6 +279,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/expireDateConstraintLayout" />
 
         </android.support.constraint.ConstraintLayout>
+
     </ScrollView>
 
     <android.support.constraint.ConstraintLayout

@@ -241,6 +241,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                             Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                             startActivity(writeDoneIntent);
 
+                            isScanning = false;
+                            closeScanPage();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
