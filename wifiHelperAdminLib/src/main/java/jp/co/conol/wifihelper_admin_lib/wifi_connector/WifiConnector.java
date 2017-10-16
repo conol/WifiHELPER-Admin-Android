@@ -56,23 +56,20 @@ public class WifiConnector {
             }
         }
 
-        // ssidが端末に登録されていない場合、接続処理を続行
-        if(mNetworkId == -1) {
-
-            switch (encMethod) {
-                case FREE:
-                    freeConnect(config);
-                    break;
-                case WEP:
-                    wepConnect(config, password);
-                    break;
-                case WPA_WPA2PSK:
-                    wpaConnect(config, password);
-                    break;
-                default:
-                    Log.d("onFailure: ", "Wifiの暗号化方式設定が正しくありません");
-                    break;
-            }
+        // 接続処理
+        switch (encMethod) {
+            case FREE:
+                freeConnect(config);
+                break;
+            case WEP:
+                wepConnect(config, password);
+                break;
+            case WPA_WPA2PSK:
+                wpaConnect(config, password);
+                break;
+            default:
+                Log.d("onFailure: ", "Wifiの暗号化方式設定が正しくありません");
+                break;
         }
 
         // wifiの有効期限を設定
