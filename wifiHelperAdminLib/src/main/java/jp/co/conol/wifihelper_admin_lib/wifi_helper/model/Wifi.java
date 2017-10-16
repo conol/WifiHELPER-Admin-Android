@@ -30,7 +30,7 @@ public class Wifi {
         return kind;
     }
 
-    public int getDays() {
+    public Integer getDays() {
         return days;
     }
 }

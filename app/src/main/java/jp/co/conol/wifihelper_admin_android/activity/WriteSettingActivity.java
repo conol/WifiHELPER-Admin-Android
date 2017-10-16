@@ -103,8 +103,10 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                 setNoneWifi();
                 break;
         }
-        if(expireDate != -1) {
+        if(expireDate != 0) {
             mExpireDateTextView.setText(String.valueOf(expireDate) + getString(R.string.write_expire_date_option));
+        } else {
+            mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
 
         // ssidかpasswordが空欄ならスキャンを開始できないようにする
@@ -144,7 +146,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             public boolean onTouch(View view, MotionEvent motionEvent) {
 
                 int defaultItem;
-                if(mExpireDateTextView.getText() == getString(R.string.write_expire_date)) {
+                if(mExpireDateTextView.getText() == getString(R.string.write_expire_date)
+                        || mExpireDateTextView.getText() == getString(R.string.write_expire_date_unlimited)) {
                     defaultItem = 0;
                 } else {
                     defaultItem = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
@@ -223,11 +226,11 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     // 入力されている設定の取得
                     final String ssid = String.valueOf(mSsidEditText.getText());
                     final String pass = String.valueOf(mPassEditText.getText());
-                    final int expireDate;
+                    final Integer expireDate;
                     if(!mExpireDateTextView.getText().toString().equals(getString(R.string.write_expire_date_unlimited))) {
                         expireDate = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
                     } else {
-                        expireDate = 0;
+                        expireDate = null;
                     }
 
                     CNFCTag tag = null;

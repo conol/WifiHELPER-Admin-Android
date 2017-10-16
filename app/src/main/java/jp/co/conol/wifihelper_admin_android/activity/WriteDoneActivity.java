@@ -48,8 +48,10 @@ public class WriteDoneActivity extends AppCompatActivity {
                 mTypeTextView.setText(getString(R.string.write_kind_none));
                 break;
         }
-        if(expireDate != -1) {
+        if(expireDate != 0) {
             mDaysTextView.setText(String.valueOf(expireDate) + getString(R.string.write_expire_date_option));
+        } else {
+            mDaysTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
     }
 
