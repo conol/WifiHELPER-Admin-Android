@@ -64,50 +64,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
 
-//        // サーバーに登録されているデバイスIDを取得
-//        final Handler handler = new Handler();
-//        if (MyUtil.Network.isConnected(this)) {
-//            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
-//                @Override
-//                public void onSuccess(List<List<String>> deviceIdList) {
-//
-//                    // 接続成功してもデバイスID一覧が無ければエラー
-//                    if(deviceIdList == null || deviceIdList.size() == 0) {
-//                        showAlertDialog();
-//                    } else {
-//                        // デバイスIDのリストを作成
-//                        for(int i = 0; i < deviceIdList.size(); i++) {
-//                            mDeviceIds.add(deviceIdList.get(i).get(0));
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Exception e) {
-//                    showAlertDialog();
-//                }
-//
-//                // デバイスID取得失敗でアラートを表示
-//                private void showAlertDialog() {
-//                    handler.post(new Runnable() {
-//                        public void run() {
-//                            new AlertDialog.Builder(MainActivity.this)
-//                                    .setMessage(getString(R.string.error_fail_get_device_ids))
-//                                    .setPositiveButton(getString(R.string.ok), null)
-//                                    .show();
-//                        }
-//                    });
-//                }
-//            }).execute();
-//        }
-//        // ネットに未接続の場合はエラー
-//        else {
-//            new AlertDialog.Builder(this)
-//                    .setMessage(getString(R.string.error_network_disable))
-//                    .setPositiveButton(getString(R.string.ok), null)
-//                    .show();
-//        }
-
         // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
@@ -211,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         }
-
                     }
 
                     @Override

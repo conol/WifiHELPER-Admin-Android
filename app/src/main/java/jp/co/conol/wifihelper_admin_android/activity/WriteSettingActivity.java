@@ -29,13 +29,24 @@ import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCTag;
+import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
@@ -43,6 +54,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     private boolean isScanning = false;
     private Handler mScanDialogAutoCloseHandler = new Handler();
     private CoronaNfc mCoronaNfc;
+    private int mWifiKind;
+    List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private EditText mSsidEditText;
     private EditText mPassEditText;
     private TextView mWepTextView;
@@ -80,14 +93,15 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
         // nfcから情報を取得
         Intent intent = getIntent();
-        String ssid = intent.getStringExtra("ssid");
-        String pass = intent.getStringExtra("pass");
-        int wifiKind = intent.getIntExtra("wifiKind", 1);
+        final String ssid = intent.getStringExtra("ssid");
+        final String pass = intent.getStringExtra("pass");
+        final int wifiKind = intent.getIntExtra("wifiKind", 1);
         final int expireDate = intent.getIntExtra("expireDate", -1);
 
         // nfcからの情報をセット
         mSsidEditText.setText(ssid);
         mPassEditText.setText(pass);
+        mWifiKind = wifiKind;
         switch (wifiKind) {
             case 1:
                 setWpaWifi();
@@ -187,6 +201,79 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         });
     }
 
+
+    @Override
+    protected void onNewIntent(final Intent intent) {
+        // サーバーに登録されているデバイスIDを取得
+        final Handler handler = new Handler();
+        if (MyUtil.Network.isConnected(this)) {
+            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
+                @Override
+                public void onSuccess(List<List<String>> deviceIdList) {
+
+                    // 接続成功してもデバイスID一覧が無ければエラー
+                    if(deviceIdList == null || deviceIdList.size() == 0) {
+                        showAlertDialog();
+                        return;
+                    } else {
+                        // デバイスIDのリストを作成
+                        for(int i = 0; i < deviceIdList.size(); i++) {
+                            mDeviceIds.add(deviceIdList.get(i).get(0));
+                        }
+                    }
+
+                    // 入力されている設定の取得
+                    final String ssid = String.valueOf(mSsidEditText.getText());
+                    final String pass = String.valueOf(mPassEditText.getText());
+                    final int expireDate = Integer.parseInt(mExpireDateTextView.getText().toString().replace(getString(R.string.write_expire_date_option), ""));
+
+                    CNFCTag tag = mCoronaNfc.getWriteTagFromIntent(intent);
+
+                    if (tag != null) {
+
+                        // nfcに書き込むjson
+                        String serviceIdString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
+                        byte[] serviceId = serviceIdString.getBytes(StandardCharsets.UTF_8);
+
+                        try {
+                            tag.writeServiceID(serviceId);
+
+                            Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
+                            startActivity(writeDoneIntent);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    showAlertDialog();
+                }
+
+                // デバイスID取得失敗でアラートを表示
+                private void showAlertDialog() {
+                    handler.post(new Runnable() {
+                        public void run() {
+                            new AlertDialog.Builder(WriteSettingActivity.this)
+                                    .setMessage(getString(R.string.error_fail_get_device_ids))
+                                    .setPositiveButton(getString(R.string.ok), null)
+                                    .show();
+                        }
+                    });
+                }
+            }).execute();
+        }
+        // ネットに未接続の場合はエラー
+        else {
+            new AlertDialog.Builder(this)
+                    .setMessage(getString(R.string.error_network_disable))
+                    .setPositiveButton(getString(R.string.ok), null)
+                    .show();
+        }
+    }
+
     public void onStartScanButtonClicked(View view) {
         // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要（wifi接続時）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
@@ -249,16 +336,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         return false;
     }
 
-    private void setWepWifi() {
-        mWepTextView.setBackgroundResource(R.drawable.style_wep_button_enable);
-        mWepTextView.setTextColor(Color.WHITE);
-        mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_disable);
-        mWpaTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
-        mNoneTextView.setBackgroundResource(R.drawable.style_none_button_disable);
-        mNoneTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
-    }
-
     private void setWpaWifi() {
+        mWifiKind = 1;
         mWepTextView.setBackgroundResource(R.drawable.style_wep_button_disable);
         mWepTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_enable);
@@ -267,7 +346,18 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mNoneTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
     }
 
+    private void setWepWifi() {
+        mWifiKind = 2;
+        mWepTextView.setBackgroundResource(R.drawable.style_wep_button_enable);
+        mWepTextView.setTextColor(Color.WHITE);
+        mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_disable);
+        mWpaTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
+        mNoneTextView.setBackgroundResource(R.drawable.style_none_button_disable);
+        mNoneTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
+    }
+
     private void setNoneWifi() {
+        mWifiKind = 3;
         mWepTextView.setBackgroundResource(R.drawable.style_wep_button_disable);
         mWepTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_disable);
