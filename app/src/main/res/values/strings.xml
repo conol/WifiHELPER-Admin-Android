@@ -29,6 +29,7 @@
     <string name="write_expire_date">日数を選択してください</string>
     <string name="write_expire_date_title">Wi-Fi有効期限日数</string>
     <string name="write_expire_date_option">日</string> <!-- Wi-Fi有効期限日数の単位 -->
+    <string name="edit_text_limit_toast">SSIDとパスワードは50文字以下で設定してください</string> <!-- Wi-Fi有効期限日数の単位 -->
 
     <!-- 書き込み完了ページ -->
     <string name="done_write">設定が完了しました！</string>

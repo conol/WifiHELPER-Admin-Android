@@ -414,11 +414,17 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     }
 
-    // ssidかpasswordが空欄ならスキャンを開始できないようにする
     @Override
     public void afterTextChanged(Editable editable) {
         String inputString = editable.toString();
+
+        // ssidかpasswordが空欄ならスキャンを開始できないようにする
         setEnableStartScanButton(inputString);
+
+        // 50文字入力されたら通知（それ以上は入力不可）
+        if(50 == inputString.length()) {
+            Toast.makeText(this, getString(R.string.edit_text_limit_toast), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setEnableStartScanButton(String string) {
