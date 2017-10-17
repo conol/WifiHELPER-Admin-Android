@@ -38,6 +38,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
+import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
@@ -217,7 +218,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     protected void onNewIntent(final Intent intent) {
         // サーバーに登録されているデバイスIDを取得
         final Handler handler = new Handler();
-        if (MyUtil.Network.isConnected(this)) {
+        if (MyUtil.Network.isConnected(this) || WifiConnector.isEnable(WriteSettingActivity.this)) {
             new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
                 @Override
                 public void onSuccess(List<List<String>> deviceIdList) {
@@ -257,6 +258,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         byte[] serviceId = serviceIdString.getBytes(StandardCharsets.UTF_8);
 
                         try {
+
                             tag.writeServiceID(serviceId);
 
                             Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);

@@ -34,6 +34,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
+import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
             // サーバーに登録されているデバイスIDを取得
             final Handler handler = new Handler();
-            if (MyUtil.Network.isConnected(this)) {
+            if (MyUtil.Network.isConnected(this) || WifiConnector.isEnable(MainActivity.this)) {
                 new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
                     @Override
                     public void onSuccess(List<List<String>> deviceIdList) {
