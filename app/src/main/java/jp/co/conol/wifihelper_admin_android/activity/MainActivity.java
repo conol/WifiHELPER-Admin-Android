@@ -23,7 +23,6 @@ import com.google.gson.Gson;
 
 import org.json.JSONException;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 

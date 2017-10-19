@@ -5,7 +5,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class CNFCT4Tag extends CNFCTag {
+public class CNFCT4WriterTag extends CNFCWriterTag {
 
     private final static byte[] NDEFTagAppSelectAPDU = new byte[] {
             (byte) 0x00, // CLA
@@ -18,7 +18,7 @@ public class CNFCT4Tag extends CNFCTag {
 
     private IsoDep dep;
 
-    public CNFCT4Tag(IsoDep dep) {
+    public CNFCT4WriterTag(IsoDep dep) {
         this.dep = dep;
     }
 

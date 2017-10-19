@@ -36,7 +36,7 @@ import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
@@ -244,7 +244,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         expireDate = null;
                     }
 
-                    CNFCTag tag = null;
+                    CNFCWriterTag tag = null;
                     try {
                         tag = mCoronaNfc.getWriteTagFromIntent(intent);
                     } catch (CNFCReaderException e) {

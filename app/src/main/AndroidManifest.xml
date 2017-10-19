@@ -25,7 +25,9 @@
             android:name=".activity.WriteSettingActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateAlwaysHidden" />
-        <activity android:name=".activity.WriteDoneActivity"></activity>
+        <activity
+            android:name=".activity.WriteDoneActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

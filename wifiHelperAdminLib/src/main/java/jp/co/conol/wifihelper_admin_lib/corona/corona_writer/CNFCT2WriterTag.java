@@ -9,11 +9,11 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class CNFCT2Tag extends CNFCTag {
+public class CNFCT2WriterTag extends CNFCWriterTag {
 
     private MifareUltralight mul;
 
-    public CNFCT2Tag(MifareUltralight mul) {
+    public CNFCT2WriterTag(MifareUltralight mul) {
         this.mul = mul;
     }
 
