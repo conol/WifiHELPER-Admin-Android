@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Formatter;
 
-public class CNFCReaderTag {
+public class CoronaReaderTag {
 
     public static final int TAG_TYPE_UNKNOWN = 0;
     public static final int TAG_TYPE_CORONA = 1;
@@ -19,7 +19,7 @@ public class CNFCReaderTag {
     private final byte[] deviceId;
     private final byte[] jsonData;
 
-    private CNFCReaderTag(byte[] deviceId, byte[] jsonData) {
+    private CoronaReaderTag(byte[] deviceId, byte[] jsonData) {
         this.deviceId = deviceId;
         this.jsonData = jsonData;
     }
@@ -61,7 +61,7 @@ public class CNFCReaderTag {
         }
     }
 
-    public static CNFCReaderTag get(NdefRecord ndef) {
+    public static CoronaReaderTag get(NdefRecord ndef) {
         if (ndef.getTnf() != NdefRecord.TNF_EXTERNAL_TYPE) {
             return null;
         }
@@ -82,6 +82,6 @@ public class CNFCReaderTag {
         byte[] jsonData = Arrays.copyOfRange(payload, CNFC_MAGIC.length + CNFC_DEVICEID_LENGTH,
                 payload.length);
 
-        return new CNFCReaderTag(deviceId, jsonData);
+        return new CoronaReaderTag(deviceId, jsonData);
     }
 }

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import java.io.IOException;
 
-public class CNFCT4WriterTag extends CNFCWriterTag {
+public class CNFCT4WriterTag extends CoronaWriterTag {
 
     private final static byte[] NDEFTagAppSelectAPDU = new byte[] {
             (byte) 0x00, // CLA

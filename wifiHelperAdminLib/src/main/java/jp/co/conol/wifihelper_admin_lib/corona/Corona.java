@@ -33,9 +33,9 @@ import java.util.TimeZone;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCT2WriterTag;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCWriterTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetLocation;
 import jp.co.conol.wifihelper_admin_lib.device_manager.SendLogAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
@@ -45,7 +45,7 @@ import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
  * Created by Masafumi_Ito on 2017/10/11.
  */
 
-public class CoronaNfc {
+public class Corona {
 
     private Context context;
     private final NfcAdapter nfcAdapter;
@@ -53,7 +53,7 @@ public class CoronaNfc {
     private final IntentFilter[] intentFilters;
     private final String[][] techList;
 
-    public CoronaNfc(Context context) throws NFCNotAvailableException {
+    public Corona(Context context) throws NFCNotAvailableException {
         this.context = context;
         nfcAdapter = NfcAdapter.getDefaultAdapter(context);
         if (nfcAdapter == null) {
@@ -113,7 +113,7 @@ public class CoronaNfc {
         nfcAdapter.disableForegroundDispatch(activity);
     }
 
-    public CNFCWriterTag getWriteTagFromIntent(Intent intent) throws CNFCReaderException {
+    public CoronaWriterTag getWriteTagFromIntent(Intent intent) throws CNFCReaderException {
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -158,7 +158,7 @@ public class CoronaNfc {
 
                     NdefRecord[] records = msg.getRecords();
                     for (NdefRecord rec : records) {
-                        CNFCReaderTag t = CNFCReaderTag.get(rec);
+                        CoronaReaderTag t = CoronaReaderTag.get(rec);
                         if (t != null) {
 
                             // 現在時間の作成
@@ -238,7 +238,7 @@ public class CoronaNfc {
         return null;
     }
 
-    public CNFCReaderTag getReadTagFromIntent(Intent intent) throws CNFCReaderException {
+    public CoronaReaderTag getReadTagFromIntent(Intent intent) throws CNFCReaderException {
         // GPSの許可がなければwifiに接続できないため、事前に確認（ログ送信にも使用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -281,7 +281,7 @@ public class CoronaNfc {
 
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {
-            CNFCReaderTag t = CNFCReaderTag.get(rec);
+            CoronaReaderTag t = CoronaReaderTag.get(rec);
             if (t != null) {
 
                 // 現在時間の作成

@@ -28,10 +28,10 @@ import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
+import jp.co.conol.wifihelper_admin_lib.corona.Corona;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences mPref;
     Gson mGson = new Gson();
     Handler mScanDialogAutoCloseHandler = new Handler();
-    private CoronaNfc mCoronaNfc;
+    private Corona mCorona;
     private boolean isScanning = false;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
 
         try {
-            mCoronaNfc = new CoronaNfc(this);
+            mCorona = new Corona(this);
         } catch (NFCNotAvailableException e) {
-            Log.d("CoronaNfc", e.toString());
+            Log.d("Corona", e.toString());
             finish();
         }
 
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // nfcがオフの場合はダイアログを表示
-        if(!mCoronaNfc.isEnable()) {
+        if(!mCorona.isEnable()) {
             new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.nfc_dialog))
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -116,10 +116,10 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         // nfc読み込み処理実行
-                        CNFCReaderTag tag = null;
+                        CoronaReaderTag tag = null;
 
                         try {
-                            tag = mCoronaNfc.getReadTagFromIntent(intent);
+                            tag = mCorona.getReadTagFromIntent(intent);
                         } catch (CNFCReaderException e) {
                             Log.d("CNFCReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
                                         Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
                                         writeSettingIntent.putExtra("ssid", wifi.getSsid());
-                                        writeSettingIntent.putExtra("pass", wifi.getPass());
+                                        writeSettingIntent.putExtra("pass", wifi.getPassword());
                                         writeSettingIntent.putExtra("wifiKind", wifi.getKind());
                                         writeSettingIntent.putExtra("expireDate", wifi.getDays());
                                         writeSettingIntent.putExtra("deviceType", deviceType);
@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
             if (!isScanning) {
 
                 // nfc読み込み待機
-                mCoronaNfc.enableForegroundDispatch(MainActivity.this);
+                mCorona.enableForegroundDispatch(MainActivity.this);
                 isScanning = true;
                 openScanPage();
 
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void cancelScan() {
         // nfc読み込み待機を解除
-        mCoronaNfc.disableForegroundDispatch(MainActivity.this);
+        mCorona.disableForegroundDispatch(MainActivity.this);
         isScanning = false;
         closeScanPage();
     }

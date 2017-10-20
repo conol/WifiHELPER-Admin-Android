@@ -10,7 +10,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class CNFCT2WriterTag extends CNFCWriterTag {
+public class CNFCT2WriterTag extends CoronaWriterTag {
 
     private MifareUltralight mul;
 

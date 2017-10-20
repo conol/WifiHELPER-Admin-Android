@@ -27,16 +27,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.corona.CoronaNfc;
+import jp.co.conol.wifihelper_admin_lib.corona.Corona;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCWriterTag;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
@@ -45,7 +44,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     private boolean isScanning = false;
     private Handler mScanDialogAutoCloseHandler = new Handler();
-    private CoronaNfc mCoronaNfc;
+    private Corona mCorona;
     private int mWifiKind;
     private int mDeviceType;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
@@ -80,9 +79,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
 
         try {
-            mCoronaNfc = new CoronaNfc(this);
+            mCorona = new Corona(this);
         } catch (NFCNotAvailableException e) {
-            Log.d("CoronaNfc", e.toString());
+            Log.d("Corona", e.toString());
             finish();
         }
 
@@ -244,9 +243,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         expireDate = null;
                     }
 
-                    CNFCWriterTag tag = null;
+                    CoronaWriterTag tag = null;
                     try {
-                        tag = mCoronaNfc.getWriteTagFromIntent(intent);
+                        tag = mCorona.getWriteTagFromIntent(intent);
                     } catch (CNFCReaderException e) {
                         e.printStackTrace();
                     }
@@ -318,7 +317,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             if (!isScanning) {
 
                 // nfc読み込み待機
-                mCoronaNfc.enableForegroundDispatch(WriteSettingActivity.this);
+                mCorona.enableForegroundDispatch(WriteSettingActivity.this);
                 isScanning = true;
                 openScanPage();
 
@@ -346,7 +345,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     private void cancelScan() {
         // nfc読み込み待機を解除
-        mCoronaNfc.disableForegroundDispatch(WriteSettingActivity.this);
+        mCorona.disableForegroundDispatch(WriteSettingActivity.this);
         isScanning = false;
         closeScanPage();
     }
