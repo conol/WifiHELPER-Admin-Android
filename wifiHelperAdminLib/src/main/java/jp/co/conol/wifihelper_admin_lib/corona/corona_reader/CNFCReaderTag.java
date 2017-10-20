@@ -8,37 +8,54 @@ import java.util.Formatter;
 
 public class CNFCReaderTag {
 
+    public static final int TAG_TYPE_UNKNOWN = 0;
+    public static final int TAG_TYPE_CORONA = 1;
+    public static final int TAG_TYPE_SEAL = 2;
+
     private static final byte[] CNFC_MAGIC = { 0x63, 0x6f, 0x01 };
     private static final int CNFC_DEVICEID_LENGTH = 7;
     private static final String CONOL_EXT_MANU_DATA = "conol.co.jp:cnfc_bt_manu_data";
 
-    private final byte[] chipId;
-    private final byte[] serviceId;
+    private final byte[] deviceId;
+    private final byte[] jsonData;
 
-    private CNFCReaderTag(byte[] chipId, byte[] serviceId) {
-        this.chipId = chipId;
-        this.serviceId = serviceId;
+    private CNFCReaderTag(byte[] deviceId, byte[] jsonData) {
+        this.deviceId = deviceId;
+        this.jsonData = jsonData;
     }
 
-    public byte[] getChipId() {
-        return chipId;
+    public byte[] getDeviceId() {
+        return deviceId;
     }
 
-    public byte[] getServiceId() {
-        return serviceId;
+    public byte[] getJSONData() {
+        return jsonData;
     }
 
-    public String getChipIdString() {
+    public String getDeviceIdString() {
         Formatter fmt = new Formatter();
-        for (byte b: chipId) {
+        for (byte b: deviceId) {
             fmt.format("%02X", b & 0xff);
         }
         return fmt.toString();
     }
 
-    public String getServiceIdString() {
+    public int getType() {
+        if (deviceId  == null || deviceId.length == 0) {
+            return TAG_TYPE_UNKNOWN;
+        }
+        if (deviceId[0] == 4) {
+            return TAG_TYPE_SEAL;
+        }
+        if (deviceId[0] == 2) {
+            return TAG_TYPE_CORONA;
+        }
+        return TAG_TYPE_UNKNOWN;
+    }
+
+    public String getJSONString() {
         try {
-            return new String(serviceId, "UTF-8");
+            return new String(jsonData, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -60,11 +77,11 @@ public class CNFCReaderTag {
             return null;
         }
 
-        byte[] chipId = Arrays.copyOfRange(payload, CNFC_MAGIC.length,
+        byte[] deviceId = Arrays.copyOfRange(payload, CNFC_MAGIC.length,
                 CNFC_MAGIC.length + CNFC_DEVICEID_LENGTH);
-        byte[] serviceId = Arrays.copyOfRange(payload, CNFC_MAGIC.length + CNFC_DEVICEID_LENGTH,
+        byte[] jsonData = Arrays.copyOfRange(payload, CNFC_MAGIC.length + CNFC_DEVICEID_LENGTH,
                 payload.length);
 
-        return new CNFCReaderTag(chipId, serviceId);
+        return new CNFCReaderTag(deviceId, jsonData);
     }
 }

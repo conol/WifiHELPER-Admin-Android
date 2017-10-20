@@ -8,6 +8,7 @@ import android.nfc.tech.Ndef;
 import android.util.Log;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class CNFCT2WriterTag extends CNFCWriterTag {
 
@@ -18,24 +19,21 @@ public class CNFCT2WriterTag extends CNFCWriterTag {
     }
 
     @Override
-    public void writeServiceID(byte[] serviceId) throws IOException {
+    public void writeJSON(String json) throws IOException {
         Log.i("nfc", "T2 detected");
 
         if (!mul.isConnected()) {
             mul.connect();
         }
 
-        byte[] chipId = mul.readPages(0);
-        HexUtils.logd("readPages(0)", chipId);
-
-        int maxDataLength = 8 * (chipId[14] & 0xff);
-        Log.d("nfc", "maxDataLength=" + maxDataLength);
+        byte[] deviceId = mul.readPages(0);
+        HexUtils.logd("readPages(0)", deviceId);
 
         mul.close();
 
-        byte[] data = new byte[maxDataLength];
+        byte[] jsonData = json.getBytes(StandardCharsets.UTF_8);
 
-        NdefRecord rec = CNFCNDEF.createRecord(chipId, serviceId);
+        NdefRecord rec = CNFCNDEF.createRecord(deviceId, jsonData);
         NdefMessage msg = new NdefMessage(rec);
 
         Ndef ndef = Ndef.get(mul.getTag());

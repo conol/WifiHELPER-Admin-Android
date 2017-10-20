@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public abstract class CNFCWriterTag {
 
-    public abstract void writeServiceID(byte[] serviceId) throws IOException;
+    public abstract void writeJSON(String json) throws IOException;
 
 }

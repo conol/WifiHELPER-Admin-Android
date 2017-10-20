@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private CoronaNfc mCoronaNfc;
     private boolean isScanning = false;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
-    List<Integer> mDeviceTypes = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのタイプ一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
     private ConstraintLayout mScanBackgroundConstraintLayout;
     private ConstraintLayout mScanDialogConstraintLayout;
@@ -103,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
             if (MyUtil.Network.isConnected(this) || WifiConnector.isEnable(MainActivity.this)) {
                 new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
                     @Override
-                    public void onSuccess(List<List<String>> deviceIdList) {
+                    public void onSuccess(List<String> deviceIdList) {
 
                         // 接続成功してもデバイスID一覧が無ければエラー
                         if(deviceIdList == null || deviceIdList.size() == 0) {
@@ -112,8 +111,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             // デバイスIDのリストを作成
                             for(int i = 0; i < deviceIdList.size(); i++) {
-                                mDeviceIds.add(deviceIdList.get(i).get(0));
-                                mDeviceTypes.add(Integer.parseInt(deviceIdList.get(i).get(1)));
+                                mDeviceIds.add(deviceIdList.get(i));
                             }
                         }
 
@@ -132,9 +130,9 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         if (tag != null) {
-                            String deviceId = tag.getChipIdString().toLowerCase();
-                            String serviceId = tag.getServiceIdString();
-//                Toast.makeText(this, "deviceId=" + chipId + "\njson=" + serviceId, Toast.LENGTH_LONG).show();
+                            int deviceType = tag.getType();
+                            String deviceId = tag.getDeviceIdString().toLowerCase();
+                            String jsonString = tag.getJSONString();
 
                             // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
                             if(mDeviceIds != null) {
@@ -146,11 +144,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 // 含まれていれば処理を進める
                                 else {
-                                    // デバイスのタイプを取得
-                                    int deviceType = mDeviceTypes.get(mDeviceIds.indexOf(deviceId));
-
                                     try {
-                                        final Wifi wifi = WifiHelper.parseJsonToObj(serviceId);
+                                        final Wifi wifi = WifiHelper.parseJsonToObj(jsonString);
 
                                         Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
                                         writeSettingIntent.putExtra("ssid", wifi.getSsid());

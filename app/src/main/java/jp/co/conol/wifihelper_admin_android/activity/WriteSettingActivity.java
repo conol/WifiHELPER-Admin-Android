@@ -221,7 +221,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         if (MyUtil.Network.isConnected(this) || WifiConnector.isEnable(WriteSettingActivity.this)) {
             new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
                 @Override
-                public void onSuccess(List<List<String>> deviceIdList) {
+                public void onSuccess(List<String> deviceIdList) {
 
                     // 接続成功してもデバイスID一覧が無ければエラー
                     if(deviceIdList == null || deviceIdList.size() == 0) {
@@ -230,7 +230,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     } else {
                         // デバイスIDのリストを作成
                         for(int i = 0; i < deviceIdList.size(); i++) {
-                            mDeviceIds.add(deviceIdList.get(i).get(0));
+                            mDeviceIds.add(deviceIdList.get(i));
                         }
                     }
 
@@ -254,12 +254,11 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     if (tag != null) {
 
                         // nfcに書き込むjson
-                        String serviceIdString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
-                        byte[] serviceId = serviceIdString.getBytes(StandardCharsets.UTF_8);
+                        String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
 
                         try {
 
-                            tag.writeServiceID(serviceId);
+                            tag.writeJSON(jsonString);
 
                             Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                             writeDoneIntent.putExtra("ssid", ssid);

@@ -176,7 +176,7 @@ public class CoronaNfc {
 
                             // デバイスIDに空白を入れる
                             // TODO 16進数でなくなるとこの部分削除
-                            String str = t.getChipIdString();
+                            String str = t.getDeviceIdString();
                             StringBuilder sb = new StringBuilder(str);
                             sb.insert(12," ");
                             sb.insert(10," ");
@@ -299,7 +299,7 @@ public class CoronaNfc {
 
                 // デバイスIDに空白を入れる
                 // TODO 16進数でなくなるとこの部分削除
-                String str = t.getChipIdString();
+                String str = t.getDeviceIdString();
                 StringBuilder sb = new StringBuilder(str);
                 sb.insert(12," ");
                 sb.insert(10," ");

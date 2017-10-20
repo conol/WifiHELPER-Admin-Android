@@ -20,12 +20,12 @@ import java.util.List;
  * Created by Masafumi_Ito on 2017/10/12.
  */
 
-public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>>> {
+public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<String>> {
 
     private AsyncCallback mAsyncCallback = null;
 
     public interface AsyncCallback{
-        void onSuccess(List<List<String>> deviceIdList);
+        void onSuccess(List<String> deviceIdList);
         void onFailure(Exception e);
     }
 
@@ -33,10 +33,10 @@ public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>
         this.mAsyncCallback = asyncCallback;
     }
 
-    protected List<List<String>> doInBackground(Void... params){
+    protected List<String> doInBackground(Void... params){
 
         String jsonString = httpGet("http://13.112.232.171/api/services/H7Pa7pQaVxxG.json");
-        List<List<String>> devicesList = new ArrayList<>();
+        List<String> deviceIdList = new ArrayList<>();
 
         if(jsonString != null) {
             try {
@@ -45,8 +45,7 @@ public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jRec = jsonArray.getJSONObject(i);
                     String deviceId = jRec.getString("device_id").replace(" ", "").toLowerCase();
-                    String deviceType = jRec.getString("device_type");
-                    devicesList.add(Arrays.asList(deviceId, deviceType));
+                    deviceIdList.add(deviceId);
                 }
 
             } catch (JSONException e) {
@@ -54,16 +53,16 @@ public class GetDevicesAsyncTask extends AsyncTask<Void, Void, List<List<String>
             }
         }
 
-        return devicesList;
+        return deviceIdList;
     }
 
     @Override
-    protected void onPostExecute(List<List<String>> deviceIdList) {
+    protected void onPostExecute(List<String> deviceIdList) {
         super.onPostExecute(deviceIdList);
         onSuccess(deviceIdList);
     }
 
-    private void onSuccess(List<List<String>> deviceIdList) {
+    private void onSuccess(List<String> deviceIdList) {
         this.mAsyncCallback.onSuccess(deviceIdList);
     }
 

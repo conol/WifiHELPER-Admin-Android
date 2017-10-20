@@ -34,7 +34,7 @@ public class CNFCT4WriterTag extends CNFCWriterTag {
     }
 
     @Override
-    public void writeServiceID(byte[] serviceId) throws IOException {
+    public void writeJSON(String json) throws IOException {
         Log.i("nfc", "T4 detected");
         selectNDEFTagApp();
 
