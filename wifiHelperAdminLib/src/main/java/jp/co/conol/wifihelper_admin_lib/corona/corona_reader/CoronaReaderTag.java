@@ -24,11 +24,11 @@ public class CoronaReaderTag {
         this.jsonData = jsonData;
     }
 
-    public byte[] getDeviceId() {
+    public byte[] getDeviceIdData() {
         return deviceId;
     }
 
-    public byte[] getJSONData() {
+    public byte[] getJsonData() {
         return jsonData;
     }
 
@@ -53,7 +53,7 @@ public class CoronaReaderTag {
         return TAG_TYPE_UNKNOWN;
     }
 
-    public String getJSONString() {
+    public String getJsonString() {
         try {
             return new String(jsonData, "UTF-8");
         } catch (UnsupportedEncodingException e) {

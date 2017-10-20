@@ -34,7 +34,7 @@ public class CNFCT4WriterTag extends CoronaWriterTag {
     }
 
     @Override
-    public void writeJSON(String json) throws IOException {
+    public void writeJson(String json) throws IOException {
         Log.i("nfc", "T4 detected");
         selectNDEFTagApp();
 

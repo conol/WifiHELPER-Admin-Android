@@ -19,7 +19,7 @@ public class CNFCT2WriterTag extends CoronaWriterTag {
     }
 
     @Override
-    public void writeJSON(String json) throws IOException {
+    public void writeJson(String json) throws IOException {
         Log.i("nfc", "T2 detected");
 
         if (!mul.isConnected()) {

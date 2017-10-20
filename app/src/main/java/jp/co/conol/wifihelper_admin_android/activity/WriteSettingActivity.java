@@ -35,6 +35,7 @@ import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.Corona;
 import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
+import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
@@ -113,7 +114,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         } else {
             mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
-        if(mDeviceType == 1) {
+        if(mDeviceType == CoronaReaderTag.TAG_TYPE_CORONA) {
             mCoronaImageView.setImageResource(R.drawable.img_corona);
         } else {
             mCoronaImageView.setImageResource(R.drawable.img_nfc);
@@ -257,7 +258,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
                         try {
 
-                            tag.writeJSON(jsonString);
+                            tag.writeJson(jsonString);
 
                             Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                             writeDoneIntent.putExtra("ssid", ssid);
@@ -313,6 +314,19 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     PERMISSION_REQUEST_CODE
             );
 
+        }
+        // nfcがオフの場合はダイアログを表示
+        else if(!mCorona.isEnable()) {
+            new AlertDialog.Builder(this)
+                    .setMessage(getString(R.string.nfc_dialog))
+                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
+                        }
+                    })
+                    .setNegativeButton(getString(R.string.cancel), null)
+                    .show();
         } else {
             if (!isScanning) {
 

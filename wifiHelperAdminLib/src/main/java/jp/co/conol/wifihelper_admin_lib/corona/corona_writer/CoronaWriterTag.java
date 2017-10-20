@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public abstract class CoronaWriterTag {
 
-    public abstract void writeJSON(String json) throws IOException;
+    public abstract void writeJson(String json) throws IOException;
 
 }
