@@ -8,9 +8,9 @@ import java.util.Formatter;
 
 public class CoronaReaderTag {
 
-    public static final int TAG_TYPE_UNKNOWN = 0;
-    public static final int TAG_TYPE_CORONA = 1;
-    public static final int TAG_TYPE_SEAL = 2;
+    private static final int TAG_TYPE_UNKNOWN = 0;
+    private static final int TAG_TYPE_CORONA = 1;
+    private static final int TAG_TYPE_SEAL = 2;
 
     private static final byte[] CNFC_MAGIC = { 0x63, 0x6f, 0x01 };
     private static final int CNFC_DEVICEID_LENGTH = 7;

@@ -33,8 +33,8 @@ import java.util.List;
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.Corona;
-import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
+import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
@@ -80,7 +80,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
         try {
             mCorona = new Corona(this);
-        } catch (NFCNotAvailableException e) {
+        } catch (NfcNotAvailableException e) {
             Log.d("Corona", e.toString());
             finish();
         }
@@ -113,7 +113,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         } else {
             mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
-        if(mDeviceType == CoronaReaderTag.TAG_TYPE_CORONA) {
+        if(mDeviceType == Corona.TAG_TYPE_CORONA) {
             mCoronaImageView.setImageResource(R.drawable.img_corona);
         } else {
             mCoronaImageView.setImageResource(R.drawable.img_nfc);
@@ -243,35 +243,24 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         expireDate = null;
                     }
 
-                    CoronaWriterTag tag = null;
+                    // nfcに書き込むjson
+                    String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
+
                     try {
-                        tag = mCorona.getWriteTagFromIntent(intent);
-                    } catch (CNFCReaderException e) {
+                        mCorona.writeJson(intent, jsonString);
+
+                        Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
+                        writeDoneIntent.putExtra("ssid", ssid);
+                        writeDoneIntent.putExtra("pass", pass);
+                        writeDoneIntent.putExtra("wifiKind", mWifiKind);
+                        writeDoneIntent.putExtra("expireDate", expireDate);
+                        writeDoneIntent.putExtra("deviceType", mDeviceType);
+                        startActivity(writeDoneIntent);
+
+                        isScanning = false;
+                        closeScanPage();
+                    } catch (CoronaException e) {
                         e.printStackTrace();
-                    }
-
-                    if (tag != null) {
-
-                        // nfcに書き込むjson
-                        String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
-
-                        try {
-
-                            tag.writeJson(jsonString);
-
-                            Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
-                            writeDoneIntent.putExtra("ssid", ssid);
-                            writeDoneIntent.putExtra("pass", pass);
-                            writeDoneIntent.putExtra("wifiKind", mWifiKind);
-                            writeDoneIntent.putExtra("expireDate", expireDate);
-                            writeDoneIntent.putExtra("deviceType", mDeviceType);
-                            startActivity(writeDoneIntent);
-
-                            isScanning = false;
-                            closeScanPage();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
 

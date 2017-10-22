@@ -3,7 +3,6 @@ package jp.co.conol.wifihelper_admin_android.activity;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
@@ -19,8 +18,6 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
 import org.json.JSONException;
 
 import java.util.ArrayList;
@@ -29,17 +26,14 @@ import java.util.List;
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.Corona;
-import jp.co.conol.wifihelper_admin_lib.corona.NFCNotAvailableException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
+import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
+import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class MainActivity extends AppCompatActivity {
 
-    SharedPreferences mPref;
-    Gson mGson = new Gson();
     Handler mScanDialogAutoCloseHandler = new Handler();
     private Corona mCorona;
     private boolean isScanning = false;
@@ -58,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             mCorona = new Corona(this);
-        } catch (NFCNotAvailableException e) {
+        } catch (NfcNotAvailableException e) {
             Log.d("Corona", e.toString());
             finish();
         }
@@ -115,12 +109,15 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         // nfc読み込み処理実行
-                        CoronaReaderTag tag = null;
-
+                        int deviceType;
+                        String deviceId;
+                        String jsonString;
                         try {
-                            tag = mCorona.getReadTagFromIntent(intent);
-                        } catch (CNFCReaderException e) {
-                            Log.d("CNFCReader", e.toString());
+                            deviceType = mCorona.readType(intent);
+                            deviceId = mCorona.readDeviceId(intent);
+                            jsonString = mCorona.readJson(intent);
+                        } catch (CoronaException e) {
+                            Log.d("CoronaReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
                                     .setMessage(getString(R.string.error_not_exist_in_devise_ids))
                                     .setPositiveButton(getString(R.string.ok), null)
@@ -128,42 +125,40 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
 
-                        if (tag != null) {
-                            int deviceType = tag.getType();
-                            String deviceId = tag.getDeviceIdString().toLowerCase();
-                            String jsonString = tag.getJsonString();
+                        // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
+                        if(mDeviceIds != null && deviceId != null && jsonString != null) {
 
-                            // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
-                            if(mDeviceIds != null) {
-                                if (!mDeviceIds.contains(deviceId)) {
+                            // デバイスIDを小文字にする
+                            deviceId = deviceId.toLowerCase();
+
+                            if (!mDeviceIds.contains(deviceId)) {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setMessage(getString(R.string.error_not_exist_in_devise_ids))
+                                        .setPositiveButton(getString(R.string.ok), null)
+                                        .show();
+                            }
+                            // 含まれていれば処理を進める
+                            else {
+                                try {
+                                    final Wifi wifi = WifiHelper.parseJsonToObj(jsonString);
+
+                                    Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
+                                    writeSettingIntent.putExtra("ssid", wifi.getSsid());
+                                    writeSettingIntent.putExtra("pass", wifi.getPassword());
+                                    writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+                                    writeSettingIntent.putExtra("expireDate", wifi.getDays());
+                                    writeSettingIntent.putExtra("deviceType", deviceType);
+                                    startActivity(writeSettingIntent);
+                                    isScanning = false;
+                                    closeScanPage();
+                                }
+                                // 読み込んだnfcがWifiHelperに未対応の場合
+                                catch (JSONException e) {
+                                    e.printStackTrace();
                                     new AlertDialog.Builder(MainActivity.this)
-                                            .setMessage(getString(R.string.error_not_exist_in_devise_ids))
+                                            .setMessage(getString(R.string.error_read_service_failed))
                                             .setPositiveButton(getString(R.string.ok), null)
                                             .show();
-                                }
-                                // 含まれていれば処理を進める
-                                else {
-                                    try {
-                                        final Wifi wifi = WifiHelper.parseJsonToObj(jsonString);
-
-                                        Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
-                                        writeSettingIntent.putExtra("ssid", wifi.getSsid());
-                                        writeSettingIntent.putExtra("pass", wifi.getPassword());
-                                        writeSettingIntent.putExtra("wifiKind", wifi.getKind());
-                                        writeSettingIntent.putExtra("expireDate", wifi.getDays());
-                                        writeSettingIntent.putExtra("deviceType", deviceType);
-                                        startActivity(writeSettingIntent);
-                                        isScanning = false;
-                                        closeScanPage();
-                                    }
-                                    // 読み込んだnfcがWifiHelperに未対応の場合
-                                    catch (JSONException e) {
-                                        e.printStackTrace();
-                                        new AlertDialog.Builder(MainActivity.this)
-                                                .setMessage(getString(R.string.error_read_service_failed))
-                                                .setPositiveButton(getString(R.string.ok), null)
-                                                .show();
-                                    }
                                 }
                             }
                         }

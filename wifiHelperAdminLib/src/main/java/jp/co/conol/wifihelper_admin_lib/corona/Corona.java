@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CNFCReaderException;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCT2WriterTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
@@ -52,12 +51,15 @@ public class Corona {
     private final PendingIntent pendingIntent;
     private final IntentFilter[] intentFilters;
     private final String[][] techList;
+    public static final int TAG_TYPE_UNKNOWN = 0;
+    public static final int TAG_TYPE_CORONA = 1;
+    public static final int TAG_TYPE_SEAL = 2;
 
-    public Corona(Context context) throws NFCNotAvailableException {
+    public Corona(Context context) throws NfcNotAvailableException {
         this.context = context;
         nfcAdapter = NfcAdapter.getDefaultAdapter(context);
         if (nfcAdapter == null) {
-            throw new NFCNotAvailableException();
+            throw new NfcNotAvailableException();
         }
 
         pendingIntent = PendingIntent.getActivity(context, 0,
@@ -113,7 +115,63 @@ public class Corona {
         nfcAdapter.disableForegroundDispatch(activity);
     }
 
-    public CoronaWriterTag getWriteTagFromIntent(Intent intent) throws CNFCReaderException {
+    public int readType(Intent intent) throws CoronaException {
+        CoronaReaderTag tag;
+        try {
+            tag = getReadTagFromIntent(intent);
+        } catch (CoronaException e) {
+            e.printStackTrace();
+            throw new CoronaException(e);
+        }
+        if(tag != null) {
+            return tag.getType();
+        } else {
+            return Corona.TAG_TYPE_UNKNOWN;
+        }
+    }
+
+    public String readDeviceId(Intent intent) throws CoronaException {
+        CoronaReaderTag tag;
+        try {
+            tag = getReadTagFromIntent(intent);
+        } catch (CoronaException e) {
+            e.printStackTrace();
+            throw new CoronaException(e);
+        }
+        if(tag != null) {
+            return tag.getDeviceIdString();
+        } else {
+            return null;
+        }
+    }
+
+    public String readJson(Intent intent) throws CoronaException {
+        CoronaReaderTag tag;
+        try {
+            tag = getReadTagFromIntent(intent);
+        } catch (CoronaException e) {
+            e.printStackTrace();
+            throw new CoronaException(e);
+        }
+        if(tag != null) {
+            return tag.getJsonString();
+        } else {
+            return null;
+        }
+    }
+
+    public void writeJson(Intent intent, String json) throws CoronaException {
+        CoronaWriterTag tag;
+        try {
+            tag = getWriteTagFromIntent(intent);
+            if(tag != null) tag.writeJson(json);
+        } catch (CoronaException | IOException e) {
+            e.printStackTrace();
+            throw new CoronaException(e);
+        }
+    }
+
+    private CoronaWriterTag getWriteTagFromIntent(Intent intent) throws CoronaException {
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -138,7 +196,7 @@ public class Corona {
 
                     Ndef ndef = Ndef.get(tag);
                     if (ndef == null) {
-                        throw new CNFCReaderException("Not NDEF tag");
+                        throw new CoronaException("Not NDEF tag");
                     }
 
                     NdefMessage msg;
@@ -146,7 +204,7 @@ public class Corona {
                         ndef.connect();
                         msg = ndef.getNdefMessage();
                     } catch (IOException | FormatException e) {
-                        throw new CNFCReaderException(e);
+                        throw new CoronaException(e);
                     } finally {
                         try {
                             ndef.close();
@@ -154,7 +212,7 @@ public class Corona {
                             e.printStackTrace();
                         }
                     }
-                    if(msg == null) throw new CNFCReaderException("Can not available WifiHelper!!");
+                    if(msg == null) throw new CoronaException("Can not available WifiHelper!!");
 
                     NdefRecord[] records = msg.getRecords();
                     for (NdefRecord rec : records) {
@@ -238,7 +296,7 @@ public class Corona {
         return null;
     }
 
-    public CoronaReaderTag getReadTagFromIntent(Intent intent) throws CNFCReaderException {
+    private CoronaReaderTag getReadTagFromIntent(Intent intent) throws CoronaException {
         // GPSの許可がなければwifiに接続できないため、事前に確認（ログ送信にも使用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -260,7 +318,7 @@ public class Corona {
 
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {
-            throw new CNFCReaderException("Not NDEF tag");
+            throw new CoronaException("Not NDEF tag");
         }
 
         NdefMessage msg;
@@ -268,8 +326,8 @@ public class Corona {
             ndef.connect();
             msg = ndef.getNdefMessage();
         } catch (IOException | FormatException e) {
-            Log.d("CNFCReaderException", e.toString());
-            throw new CNFCReaderException(e);
+            Log.d("CoronaException", e.toString());
+            throw new CoronaException(e);
         } finally {
             try {
                 ndef.close();
@@ -277,7 +335,7 @@ public class Corona {
                 e.printStackTrace();
             }
         }
-        if(msg == null) throw new CNFCReaderException("Can not available WifiHelper!!");
+        if(msg == null) throw new CoronaException("Can not available WifiHelper!!");
 
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {
@@ -355,6 +413,6 @@ public class Corona {
             }
         }
 
-        throw new CNFCReaderException("Not Corona tag");
+        throw new CoronaException("Not Corona tag");
     }
 }
