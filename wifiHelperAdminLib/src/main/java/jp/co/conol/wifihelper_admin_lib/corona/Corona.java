@@ -17,15 +17,24 @@ import android.nfc.tech.IsoDep;
 import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcA;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.PatternMatcher;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -35,8 +44,6 @@ import jp.co.conol.wifihelper_admin_lib.Util;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCT2WriterTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
-import jp.co.conol.wifihelper_admin_lib.device_manager.GetLocation;
-import jp.co.conol.wifihelper_admin_lib.device_manager.SendLogAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 
@@ -88,7 +95,7 @@ public class Corona {
 
         // ネットに繋がっていればログの送信
         if(savedLog != null && (Util.Network.isConnected(context) || WifiHelper.isEnable(context))) {
-            new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+            new SendLog(new SendLog.AsyncCallback() {
                 @Override
                 public void onSuccess(JSONObject responseJson) {
                     // 保存されているログは削除
@@ -229,12 +236,6 @@ public class Corona {
                         CoronaReaderTag t = CoronaReaderTag.get(rec);
                         if (t != null) {
 
-                            // 現在時間の作成
-                            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                            sdf.setTimeZone(cal.getTimeZone());
-                            String currentDateTime = sdf.format(cal.getTime());
-
                             // 位置情報の取得
                             GetLocation location = new GetLocation(context);
                             String locationInfo = "";
@@ -256,7 +257,7 @@ public class Corona {
                             Gson gson = new Gson();
 
                             // 現在のログを作成
-                            String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, mWriteLogMessage};
+                            String currentLog[] = {sb.toString().toLowerCase(), locationInfo, mWriteLogMessage};
 
                             // 本体に登録されているログを取得（2次元配列）
                             final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
@@ -275,7 +276,7 @@ public class Corona {
 
                             // ネットに繋がっていればログの送信
                             if(Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
-                                new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+                                new SendLog(new SendLog.AsyncCallback() {
                                     @Override
                                     public void onSuccess(JSONObject responseJson) {
                                         // 保存されているログは削除
@@ -354,12 +355,6 @@ public class Corona {
 
                 if (sendLog) {
 
-                    // 現在時間の作成
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                    sdf.setTimeZone(cal.getTimeZone());
-                    String currentDateTime = sdf.format(cal.getTime());
-
                     // 位置情報の取得
                     GetLocation location = new GetLocation(context);
                     String locationInfo = "";
@@ -379,7 +374,7 @@ public class Corona {
                     sb.insert(2, " ");
 
                     // 現在のログを作成
-                    String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, mReadLogMessage};
+                    String currentLog[] = {sb.toString().toLowerCase(), locationInfo, mReadLogMessage};
 
                     // 本体に登録されているログを取得（2次元配列）
                     Gson gson = new Gson();
@@ -399,7 +394,7 @@ public class Corona {
 
                     // ネットに繋がっていればログの送信
                     if (Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
-                        new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+                        new SendLog(new SendLog.AsyncCallback() {
                             @Override
                             public void onSuccess(JSONObject responseJson) {
                                 // 保存されているログは削除
@@ -427,5 +422,94 @@ public class Corona {
         }
 
         throw new CoronaException("Not Corona tag");
+    }
+
+    public static class SendLog extends AsyncTask<String[][], Void, JSONObject> {
+
+        private AsyncCallback mAsyncCallback = null;
+
+        public interface AsyncCallback{
+            void onSuccess(JSONObject responseJson);
+            void onFailure(Exception e);
+        }
+
+        public SendLog(AsyncCallback asyncCallback){
+            this.mAsyncCallback = asyncCallback;
+        }
+
+        @Override
+        protected JSONObject doInBackground(String[][]... params) {
+
+            // 現在時間の作成
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            sdf.setTimeZone(cal.getTimeZone());
+            String currentDateTime = sdf.format(cal.getTime());
+
+            // ログ送信用のjsonを作成
+            JSONObject deviceLogsJson = new JSONObject();
+            JSONArray deviceLogJsonArray = new JSONArray();
+            try {
+                for(int i = 0; i < params[0].length; i++) {
+                    JSONObject jsonOneData;
+                    jsonOneData = new JSONObject();
+                    jsonOneData.put("device_id", params[0][i][0]);
+                    jsonOneData.put("used_at", currentDateTime);
+                    jsonOneData.put("lat_lng", params[0][i][1]);
+                    jsonOneData.put("notes", params[0][i][2]);
+                    jsonOneData.put("shop", null);  // TODO 後に削除
+                    deviceLogJsonArray.put(jsonOneData);
+                }
+
+                deviceLogsJson.put("device_logs", deviceLogJsonArray);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // サーバーにログを送信
+            JSONObject responseJson = null;
+            try {
+                String buffer = "";
+                HttpURLConnection con = null;
+                URL url = new URL("http://13.112.232.171/api/device_logs/H7Pa7pQaVxxG.json");
+                con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("POST");
+                con.setInstanceFollowRedirects(false);
+                con.setRequestProperty("Accept-Language", "jp");
+                con.setDoOutput(true);
+                con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                OutputStream os = con.getOutputStream();
+                PrintStream ps = new PrintStream(os);
+                ps.print(deviceLogsJson.toString());
+                ps.close();
+
+                // レスポンスを取得
+                BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                String responseJsonString = reader.readLine();
+                responseJson = new JSONObject(responseJsonString);
+
+                con.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("ServerLog", e.toString());
+                onFailure(e);
+            }
+
+            return responseJson;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject responseJson) {
+            super.onPostExecute(responseJson);
+            onSuccess(responseJson);
+        }
+
+        private void onSuccess(JSONObject responseJson) {
+            this.mAsyncCallback.onSuccess(responseJson);
+        }
+
+        private void onFailure(Exception e) {
+            this.mAsyncCallback.onFailure(e);
+        }
     }
 }

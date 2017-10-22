@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.device_manager;
+package jp.co.conol.wifihelper_admin_lib.corona;
 
 /**
  * Created by Masafumi_Ito on 2017/10/14.
