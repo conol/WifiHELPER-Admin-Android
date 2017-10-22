@@ -15,7 +15,7 @@
         android:supportsRtl="true">
 
         <!-- wifiのオンオフを検知 -->
-        <receiver android:name=".wifi_connector.receiver.WifiStateWatcher">
+        <receiver android:name=".wifi_helper.receiver.WifiStateWatcher">
             <intent-filter>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
@@ -23,7 +23,7 @@
 
         <!-- wifi有効期限切れのアラームを検知 -->
         <receiver
-            android:name=".wifi_connector.receiver.WifiExpiredBroadcastReceiver"
+            android:name=".wifi_helper.receiver.WifiExpiredBroadcastReceiver"
             android:process=":remote" />
 
     </application>

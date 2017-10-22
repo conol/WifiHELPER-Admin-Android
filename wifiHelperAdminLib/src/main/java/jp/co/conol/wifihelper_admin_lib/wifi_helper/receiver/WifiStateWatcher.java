@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.wifi_connector.receiver;
+package jp.co.conol.wifihelper_admin_lib.wifi_helper.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 import java.util.Date;
 
-import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 /**
  * Created by Masafumi_Ito on 2017/10/04.
@@ -41,8 +41,8 @@ public class WifiStateWatcher extends BroadcastReceiver {
                 if(expireDateTime.compareTo(currentDateTime) <= 0 && ssid != null) {
 
                     // wifiを解除
-                    WifiConnector.deleteAccessPoint(context, ssid);
-                    WifiConnector.tryDisconnect(context); // removeWifiSetting後に実行
+                    WifiHelper.deleteAccessPoint(context, ssid);
+                    WifiHelper.tryDisconnect(context); // removeWifiSetting後に実行
 
                     // メッセージを表示
                     Toast.makeText(context, "Wifi期限切れてます", Toast.LENGTH_LONG).show();

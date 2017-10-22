@@ -38,7 +38,7 @@ import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCT2WriterTag;
 import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
 import jp.co.conol.wifihelper_admin_lib.device_manager.GetLocation;
 import jp.co.conol.wifihelper_admin_lib.device_manager.SendLogAsyncTask;
-import jp.co.conol.wifihelper_admin_lib.wifi_connector.WifiConnector;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 
 /**
@@ -83,7 +83,7 @@ public class Corona {
         String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
 
         // ネットに繋がっていればログの送信
-        if(savedLog != null && (Util.Network.isConnected(context) || WifiConnector.isEnable(context))) {
+        if(savedLog != null && (Util.Network.isConnected(context) || WifiHelper.isEnable(context))) {
             new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
                 @Override
                 public void onSuccess(JSONObject responseJson) {
@@ -206,7 +206,7 @@ public class Corona {
                             }
 
                             // ネットに繋がっていればログの送信
-                            if(Util.Network.isConnected(context) || WifiConnector.isEnable(context)) {
+                            if(Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
                                 new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
                                     @Override
                                     public void onSuccess(JSONObject responseJson) {
@@ -328,7 +328,7 @@ public class Corona {
                 }
 
                 // ネットに繋がっていればログの送信
-                if(Util.Network.isConnected(context) || WifiConnector.isEnable(context)) {
+                if(Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
                     new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
                         @Override
                         public void onSuccess(JSONObject responseJson) {
