@@ -51,6 +51,8 @@ public class Corona {
     private final PendingIntent pendingIntent;
     private final IntentFilter[] intentFilters;
     private final String[][] techList;
+    private String mReadLogMessage = "read!";
+    private String mWriteLogMessage = "write!";
     public static final int TAG_TYPE_UNKNOWN = 0;
     public static final int TAG_TYPE_CORONA = 1;
     public static final int TAG_TYPE_SEAL = 2;
@@ -118,7 +120,7 @@ public class Corona {
     public int readType(Intent intent) throws CoronaException {
         CoronaReaderTag tag;
         try {
-            tag = getReadTagFromIntent(intent);
+            tag = getReadTagFromIntent(intent, false);
         } catch (CoronaException e) {
             e.printStackTrace();
             throw new CoronaException(e);
@@ -133,7 +135,7 @@ public class Corona {
     public String readDeviceId(Intent intent) throws CoronaException {
         CoronaReaderTag tag;
         try {
-            tag = getReadTagFromIntent(intent);
+            tag = getReadTagFromIntent(intent, false);
         } catch (CoronaException e) {
             e.printStackTrace();
             throw new CoronaException(e);
@@ -148,7 +150,7 @@ public class Corona {
     public String readJson(Intent intent) throws CoronaException {
         CoronaReaderTag tag;
         try {
-            tag = getReadTagFromIntent(intent);
+            tag = getReadTagFromIntent(intent, true);
         } catch (CoronaException e) {
             e.printStackTrace();
             throw new CoronaException(e);
@@ -169,6 +171,14 @@ public class Corona {
             e.printStackTrace();
             throw new CoronaException(e);
         }
+    }
+
+    public void setReadLogMessage(String message) {
+        mReadLogMessage = message;
+    }
+
+    public void setWriteLogMessage(String message) {
+        mWriteLogMessage = message;
     }
 
     private CoronaWriterTag getWriteTagFromIntent(Intent intent) throws CoronaException {
@@ -246,7 +256,7 @@ public class Corona {
                             Gson gson = new Gson();
 
                             // 現在のログを作成
-                            String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, "Write"};
+                            String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, mWriteLogMessage};
 
                             // 本体に登録されているログを取得（2次元配列）
                             final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
@@ -296,7 +306,7 @@ public class Corona {
         return null;
     }
 
-    private CoronaReaderTag getReadTagFromIntent(Intent intent) throws CoronaException {
+    private CoronaReaderTag getReadTagFromIntent(Intent intent, boolean sendLog) throws CoronaException {
         // GPSの許可がなければwifiに接続できないため、事前に確認（ログ送信にも使用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -342,71 +352,74 @@ public class Corona {
             CoronaReaderTag t = CoronaReaderTag.get(rec);
             if (t != null) {
 
-                // 現在時間の作成
-                Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                sdf.setTimeZone(cal.getTimeZone());
-                String currentDateTime = sdf.format(cal.getTime());
+                if (sendLog) {
 
-                // 位置情報の取得
-                GetLocation location = new GetLocation(context);
-                String locationInfo = "";
-                if(location.getCurrentLocation() != null) {
-                    locationInfo = String.valueOf(location.getCurrentLocation().getLatitude()) + "," + String.valueOf(location.getCurrentLocation().getLongitude());
-                }
+                    // 現在時間の作成
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                    sdf.setTimeZone(cal.getTimeZone());
+                    String currentDateTime = sdf.format(cal.getTime());
 
-                // デバイスIDに空白を入れる
-                // TODO 16進数でなくなるとこの部分削除
-                String str = t.getDeviceIdString();
-                StringBuilder sb = new StringBuilder(str);
-                sb.insert(12," ");
-                sb.insert(10," ");
-                sb.insert(8," ");
-                sb.insert(6," ");
-                sb.insert(4," ");
-                sb.insert(2," ");
+                    // 位置情報の取得
+                    GetLocation location = new GetLocation(context);
+                    String locationInfo = "";
+                    if (location.getCurrentLocation() != null) {
+                        locationInfo = String.valueOf(location.getCurrentLocation().getLatitude()) + "," + String.valueOf(location.getCurrentLocation().getLongitude());
+                    }
 
-                // 現在のログを作成
-                String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, "Read"};
+                    // デバイスIDに空白を入れる
+                    // TODO 16進数でなくなるとこの部分削除
+                    String str = t.getDeviceIdString();
+                    StringBuilder sb = new StringBuilder(str);
+                    sb.insert(12, " ");
+                    sb.insert(10, " ");
+                    sb.insert(8, " ");
+                    sb.insert(6, " ");
+                    sb.insert(4, " ");
+                    sb.insert(2, " ");
 
-                // 本体に登録されているログを取得（2次元配列）
-                Gson gson = new Gson();
-                final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
-                String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
+                    // 現在のログを作成
+                    String currentLog[] = {sb.toString().toLowerCase(), currentDateTime, locationInfo, mReadLogMessage};
 
-                // サーバーに送信するためのログを作成
-                int toSendLogLength = 1;
-                if(savedLog != null) {
-                    toSendLogLength += savedLog.length;
-                }
-                String toSendLog[][] = new String[toSendLogLength][currentLog.length];
-                toSendLog[0] = currentLog;
-                if(savedLog != null) {
-                    System.arraycopy(savedLog, 0, toSendLog, 1, toSendLogLength - 1);
-                }
+                    // 本体に登録されているログを取得（2次元配列）
+                    Gson gson = new Gson();
+                    final SharedPreferences pref = context.getSharedPreferences("logs", Context.MODE_PRIVATE);
+                    String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
 
-                // ネットに繋がっていればログの送信
-                if(Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
-                    new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
-                        @Override
-                        public void onSuccess(JSONObject responseJson) {
-                            // 保存されているログは削除
-                            SharedPreferences.Editor editor = pref.edit();
-                            editor.putString("savedLog", null);
-                            editor.apply();
-                        }
+                    // サーバーに送信するためのログを作成
+                    int toSendLogLength = 1;
+                    if (savedLog != null) {
+                        toSendLogLength += savedLog.length;
+                    }
+                    String toSendLog[][] = new String[toSendLogLength][currentLog.length];
+                    toSendLog[0] = currentLog;
+                    if (savedLog != null) {
+                        System.arraycopy(savedLog, 0, toSendLog, 1, toSendLogLength - 1);
+                    }
 
-                        @Override
-                        public void onFailure(Exception e) {
-                            Log.d("SendLogFailure", e.toString());
-                        }
-                    }).execute(toSendLog);
-                }
-                // ネットに繋がっていなければログを保存
-                else {
-                    SharedPreferences.Editor editor = pref.edit();
-                    editor.putString("savedLog", gson.toJson(toSendLog));
-                    editor.apply();
+                    // ネットに繋がっていればログの送信
+                    if (Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
+                        new SendLogAsyncTask(new SendLogAsyncTask.AsyncCallback() {
+                            @Override
+                            public void onSuccess(JSONObject responseJson) {
+                                // 保存されているログは削除
+                                SharedPreferences.Editor editor = pref.edit();
+                                editor.putString("savedLog", null);
+                                editor.apply();
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                Log.d("SendLogFailure", e.toString());
+                            }
+                        }).execute(toSendLog);
+                    }
+                    // ネットに繋がっていなければログを保存
+                    else {
+                        SharedPreferences.Editor editor = pref.edit();
+                        editor.putString("savedLog", gson.toJson(toSendLog));
+                        editor.apply();
+                    }
                 }
 
                 return t;
