@@ -6,7 +6,7 @@ import android.nfc.NdefRecord;
 public class CNFCNDEF {
 
     private static final String CNFC_TAG_DOMAIN = "conol.co.jp";
-    private static final String CNFC_TAG_TYPE = "cnfc_bt_manu_data";
+    private static final String CNFC_TAG_TYPE = "corona";
     private static final byte CNFC_MAGIC_1 = 0x63;
     private static final byte CNFC_MAGIC_2 = 0x6f;
     private static final byte CNFC_MAGIC_3 = 0x01;

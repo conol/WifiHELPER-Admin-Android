@@ -77,7 +77,7 @@ public class Corona {
 
         IntentFilter actionNdef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
         actionNdef.addDataScheme("vnd.android.nfc");
-        actionNdef.addDataPath("/conol.co.jp:cnfc_bt_manu_data", PatternMatcher.PATTERN_LITERAL);
+        actionNdef.addDataPath("/conol.co.jp:corona", PatternMatcher.PATTERN_LITERAL);
 
         intentFilters = new IntentFilter[]{
                 actionNdef
