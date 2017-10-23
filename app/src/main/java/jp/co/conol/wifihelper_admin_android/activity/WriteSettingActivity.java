@@ -26,7 +26,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +34,6 @@ import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.Corona;
 import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
-import jp.co.conol.wifihelper_admin_lib.device_manager.GetDevicesAsyncTask;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
@@ -218,7 +214,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         // サーバーに登録されているデバイスIDを取得
         final Handler handler = new Handler();
         if (MyUtil.Network.isConnected(this) || WifiHelper.isEnable(WriteSettingActivity.this)) {
-            new GetDevicesAsyncTask(new GetDevicesAsyncTask.AsyncCallback() {
+            new WifiHelper.GetAvailableDevices(new WifiHelper.GetAvailableDevices.AsyncCallback() {
                 @Override
                 public void onSuccess(List<String> deviceIdList) {
 
