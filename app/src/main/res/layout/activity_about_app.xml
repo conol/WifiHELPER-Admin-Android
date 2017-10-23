@@ -118,6 +118,7 @@
     <Button
         android:id="@+id/aboutAppContactButton"
         android:layout_width="0dp"
+        android:onClick="onAboutAppContactButtonClicked"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:layout_marginLeft="32dp"
