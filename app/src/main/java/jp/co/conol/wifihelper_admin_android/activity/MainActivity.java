@@ -28,6 +28,7 @@ import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_lib.corona.Corona;
 import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
 import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
             // サーバーに登録されているデバイスIDを取得
             final Handler handler = new Handler();
             if (MyUtil.Network.isConnected(this) || WifiHelper.isEnable(MainActivity.this)) {
-                new WifiHelper.GetAvailableDevices(new WifiHelper.GetAvailableDevices.AsyncCallback() {
+                new GetAvailableDevices(new GetAvailableDevices.AsyncCallback() {
                     @Override
                     public void onSuccess(List<String> deviceIdList) {
 
