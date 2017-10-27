@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 public class CuonaWritableT2 extends CuonaWritableTag {
 
     private MifareUltralight mul;
-    private boolean useShortKeyFlag;
+    private boolean useShortKeyFlag = false;
 
     public CuonaWritableT2(MifareUltralight mul, boolean useShortKeyFlag) {
         this.mul = mul;

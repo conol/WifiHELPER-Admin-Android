@@ -187,8 +187,11 @@ public class Util {
         public static String deviceIdForServer(String deviceId) {
             String deviceIdTmp = deviceId.replace(" ", "").toLowerCase();
             StringBuilder deviceIdToSend = new StringBuilder(deviceIdTmp);
-            for (int i = 0; i < 6; i++) {
-                deviceIdToSend.insert((deviceIdToSend.length() - 2) - (2 * i), " ");
+
+            int deviceIdToSendLength = deviceIdToSend.length();
+
+            for (int i = 0; i < (deviceIdToSendLength - 2) / 2; i++) {
+                deviceIdToSend.insert((deviceIdToSendLength - 2) - (2 * i), " ");
             }
             return deviceIdToSend.toString();
         }

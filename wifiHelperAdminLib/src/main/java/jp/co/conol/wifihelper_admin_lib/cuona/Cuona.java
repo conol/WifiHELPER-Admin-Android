@@ -256,7 +256,7 @@ public class Cuona {
                             String deviceId = Util.Transform.deviceIdForServer(cuonaReaderTag.getDeviceIdString());
 
                             // 現在のログを作成
-                            String currentLog[] = {deviceId, locationInfo, mReadLogMessage};
+                            String currentLog[] = {deviceId, locationInfo, mWriteLogMessage};
 
                             Gson gson = new Gson();
 
