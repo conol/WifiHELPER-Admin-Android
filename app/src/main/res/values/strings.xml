@@ -4,23 +4,23 @@
     <string name="app_name_sub">for ADMIN</string>
     <string name="app_name">Wi-Fi HELPER for ADMIN</string>
     <string name="app_version">アプリバージョン：v1.0.0</string>
-    <string name="top_message">書き込むCORONAもしくは、\nNFCチップにタッチしてください</string>
+    <string name="top_message">書き込むCUONAもしくは、\nNFCチップにタッチしてください</string>
     <string name="start_reading">NFCリーダーを起動する</string>
     <string name="connecting_wifi">利用可能なWi-Fiへ接続を行っています</string>
 
     <!-- nfc -->
     <string name="nfc_scan_title">スキャンの準備ができました</string>
-    <string name="nfc_scan_message">CORONAへタッチしてください</string>
+    <string name="nfc_scan_message">CUONAへタッチしてください</string>
 
     <!-- about -->
     <string name="about_app">このアプリについて</string>
-    <string name="about_app_message">本アプリは【CORONA】シリーズでの利用が可能なWi-Fi専用アプリです。ホテルや空港など様々な場所でのご利用が可能になります。</string>
+    <string name="about_app_message">本アプリは【CUONA】シリーズでの利用が可能なWi-Fi専用アプリです。ホテルや空港など様々な場所でのご利用が可能になります。</string>
     <string name="about_app_note">※ ご利用企業様に応じて若干見た目が異なる場合がございます。</string>
-    <string name="about_app_contact">CORONAについてのお問合わせはこちら</string>
+    <string name="about_app_contact">CUONAについてのお問合わせはこちら</string>
 
     <!-- 書き込み設定ページ -->
-    <string name="detect_corona">CORONAを検出しました！</string>
-    <string name="detect_corona_message">書き込む情報を入力して、\n再度CORONAにタップしてください</string>
+    <string name="detect_corona">CUONAを検出しました！</string>
+    <string name="detect_corona_message">書き込む情報を入力して、\n再度CUONAにタップしてください</string>
     <string name="write_ssid">SSIDを入力してください</string>
     <string name="write_pass">パスワードを入力してください</string>
     <string name="write_kind_wep">WEP</string>
