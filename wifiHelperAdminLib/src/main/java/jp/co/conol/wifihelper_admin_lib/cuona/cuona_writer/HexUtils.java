@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.corona.corona_writer;
+package jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer;
 
 import android.util.Log;
 

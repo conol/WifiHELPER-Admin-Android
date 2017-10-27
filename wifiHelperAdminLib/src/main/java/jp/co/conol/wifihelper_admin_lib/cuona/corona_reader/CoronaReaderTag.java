@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.corona.corona_reader;
+package jp.co.conol.wifihelper_admin_lib.cuona.corona_reader;
 
 import android.nfc.NdefRecord;
 

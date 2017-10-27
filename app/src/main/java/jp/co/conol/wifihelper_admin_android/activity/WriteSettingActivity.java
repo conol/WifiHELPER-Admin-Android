@@ -31,9 +31,9 @@ import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.corona.Corona;
-import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
-import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
+import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
+import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
@@ -41,7 +41,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     private boolean isScanning = false;
     private Handler mScanDialogAutoCloseHandler = new Handler();
-    private Corona mCorona;
+    private Cuona mCuona;
     private int mWifiKind;
     private int mDeviceType;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
@@ -76,9 +76,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
 
         try {
-            mCorona = new Corona(this);
+            mCuona = new Cuona(this);
         } catch (NfcNotAvailableException e) {
-            Log.d("Corona", e.toString());
+            Log.d("Cuona", e.toString());
             finish();
         }
 
@@ -110,7 +110,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         } else {
             mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
-        if(mDeviceType == Corona.TAG_TYPE_CORONA) {
+        if(mDeviceType == Cuona.TAG_TYPE_CUONA) {
             mCoronaImageView.setImageResource(R.drawable.img_corona);
         } else {
             mCoronaImageView.setImageResource(R.drawable.img_nfc);
@@ -243,8 +243,12 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     // nfcに書き込むjson
                     String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
 
+                    // NFCのタイプがシールの場合はRSA512を使用
+                    boolean useShortKey = false;
+                    if(mDeviceType == Cuona.TAG_TYPE_SEAL) useShortKey = true;
+
                     try {
-                        mCorona.writeJson(intent, jsonString);
+                        mCuona.writeJson(intent, jsonString, useShortKey);
 
                         Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                         writeDoneIntent.putExtra("ssid", ssid);
@@ -256,7 +260,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
                         isScanning = false;
                         closeScanPage();
-                    } catch (CoronaException e) {
+                    } catch (CuonaException e) {
                         e.printStackTrace();
                     }
                 }
@@ -301,7 +305,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
         }
         // nfcがオフの場合はダイアログを表示
-        else if(!mCorona.isEnable()) {
+        else if(!mCuona.isEnable()) {
             new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.nfc_dialog))
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -316,7 +320,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             if (!isScanning) {
 
                 // nfc読み込み待機
-                mCorona.enableForegroundDispatch(WriteSettingActivity.this);
+                mCuona.enableForegroundDispatch(WriteSettingActivity.this);
                 isScanning = true;
                 openScanPage();
 
@@ -344,7 +348,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     private void cancelScan() {
         // nfc読み込み待機を解除
-        mCorona.disableForegroundDispatch(WriteSettingActivity.this);
+        mCuona.disableForegroundDispatch(WriteSettingActivity.this);
         isScanning = false;
         closeScanPage();
     }

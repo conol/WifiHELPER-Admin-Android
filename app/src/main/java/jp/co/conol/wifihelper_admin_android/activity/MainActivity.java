@@ -25,9 +25,9 @@ import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.corona.Corona;
-import jp.co.conol.wifihelper_admin_lib.corona.CoronaException;
-import jp.co.conol.wifihelper_admin_lib.corona.NfcNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
+import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
+import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
@@ -35,7 +35,7 @@ import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 public class MainActivity extends AppCompatActivity {
 
     Handler mScanDialogAutoCloseHandler = new Handler();
-    private Corona mCorona;
+    private Cuona mCuona;
     private boolean isScanning = false;
     List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
@@ -51,9 +51,9 @@ public class MainActivity extends AppCompatActivity {
         mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
 
         try {
-            mCorona = new Corona(this);
+            mCuona = new Cuona(this);
         } catch (NfcNotAvailableException e) {
-            Log.d("Corona", e.toString());
+            Log.d("Cuona", e.toString());
             finish();
         }
 
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // nfcがオフの場合はダイアログを表示
-        if(!mCorona.isEnable()) {
+        if(!mCuona.isEnable()) {
             new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.nfc_dialog))
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -113,11 +113,11 @@ public class MainActivity extends AppCompatActivity {
                         String deviceId;
                         String jsonString;
                         try {
-                            deviceType = mCorona.readType(intent);
-                            deviceId = mCorona.readDeviceId(intent);
-                            jsonString = mCorona.readJson(intent);
-                        } catch (CoronaException e) {
-                            Log.d("CoronaReader", e.toString());
+                            deviceType = mCuona.readType(intent);
+                            deviceId = mCuona.readDeviceId(intent);
+                            jsonString = mCuona.readJson(intent);
+                        } catch (CuonaException e) {
+                            Log.d("CuonaReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
                                     .setMessage(getString(R.string.error_not_exist_in_devise_ids))
                                     .setPositiveButton(getString(R.string.ok), null)
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         // nfcがオフの場合はダイアログを表示
-        else if(!mCorona.isEnable()) {
+        else if(!mCuona.isEnable()) {
             new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.nfc_dialog))
                     .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             if (!isScanning) {
 
                 // nfc読み込み待機
-                mCorona.enableForegroundDispatch(MainActivity.this);
+                mCuona.enableForegroundDispatch(MainActivity.this);
                 isScanning = true;
                 openScanPage();
 
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void cancelScan() {
         // nfc読み込み待機を解除
-        mCorona.disableForegroundDispatch(MainActivity.this);
+        mCuona.disableForegroundDispatch(MainActivity.this);
         isScanning = false;
         closeScanPage();
     }

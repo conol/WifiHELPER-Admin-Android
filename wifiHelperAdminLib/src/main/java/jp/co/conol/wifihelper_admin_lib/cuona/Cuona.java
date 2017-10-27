@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.corona;
+package jp.co.conol.wifihelper_admin_lib.cuona;
 
 import android.Manifest;
 import android.app.Activity;
@@ -13,7 +13,6 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
-import android.nfc.tech.IsoDep;
 import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcA;
@@ -41,9 +40,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_reader.CoronaReaderTag;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CNFCT2WriterTag;
-import jp.co.conol.wifihelper_admin_lib.corona.corona_writer.CoronaWriterTag;
+import jp.co.conol.wifihelper_admin_lib.cuona.corona_reader.CoronaReaderTag;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableT2;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableTag;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
 
@@ -51,7 +50,7 @@ import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
  * Created by Masafumi_Ito on 2017/10/11.
  */
 
-public class Corona {
+public class Cuona {
 
     private Context context;
     private final NfcAdapter nfcAdapter;
@@ -61,10 +60,10 @@ public class Corona {
     private String mReadLogMessage = "read!";
     private String mWriteLogMessage = "write!";
     public static final int TAG_TYPE_UNKNOWN = 0;
-    public static final int TAG_TYPE_CORONA = 1;
+    public static final int TAG_TYPE_CUONA = 1;
     public static final int TAG_TYPE_SEAL = 2;
 
-    public Corona(Context context) throws NfcNotAvailableException {
+    public Cuona(Context context) throws NfcNotAvailableException {
         this.context = context;
         nfcAdapter = NfcAdapter.getDefaultAdapter(context);
         if (nfcAdapter == null) {
@@ -84,8 +83,7 @@ public class Corona {
         };
 
         techList = new String[][]{
-                new String[]{NfcA.class.getName(), IsoDep.class.getName()},
-                new String[]{NfcA.class.getName(), MifareUltralight.class.getName()}
+                new String[] { NfcA.class.getName(), MifareUltralight.class.getName() }
         };
 
         // 本体に登録されているログを取得（2次元配列）
@@ -124,28 +122,28 @@ public class Corona {
         nfcAdapter.disableForegroundDispatch(activity);
     }
 
-    public int readType(Intent intent) throws CoronaException {
+    public int readType(Intent intent) throws CuonaException {
         CoronaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, false);
-        } catch (CoronaException e) {
+        } catch (CuonaException e) {
             e.printStackTrace();
-            throw new CoronaException(e);
+            throw new CuonaException(e);
         }
         if(tag != null) {
             return tag.getType();
         } else {
-            return Corona.TAG_TYPE_UNKNOWN;
+            return Cuona.TAG_TYPE_UNKNOWN;
         }
     }
 
-    public String readDeviceId(Intent intent) throws CoronaException {
+    public String readDeviceId(Intent intent) throws CuonaException {
         CoronaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, false);
-        } catch (CoronaException e) {
+        } catch (CuonaException e) {
             e.printStackTrace();
-            throw new CoronaException(e);
+            throw new CuonaException(e);
         }
         if(tag != null) {
             return tag.getDeviceIdString();
@@ -154,13 +152,13 @@ public class Corona {
         }
     }
 
-    public String readJson(Intent intent) throws CoronaException {
+    public String readJson(Intent intent) throws CuonaException {
         CoronaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, true);
-        } catch (CoronaException e) {
+        } catch (CuonaException e) {
             e.printStackTrace();
-            throw new CoronaException(e);
+            throw new CuonaException(e);
         }
         if(tag != null) {
             return tag.getJsonString();
@@ -169,14 +167,18 @@ public class Corona {
         }
     }
 
-    public void writeJson(Intent intent, String json) throws CoronaException {
-        CoronaWriterTag tag;
+    public void writeJson(Intent intent, String json, boolean useShortKey) throws CuonaException {
+        CuonaWritableTag tag;
         try {
             tag = getWriteTagFromIntent(intent);
-            if(tag != null) tag.writeJson(json);
-        } catch (CoronaException | IOException e) {
+
+            if(tag != null) {
+                tag.setUseShortKey(useShortKey);
+                tag.writeJson(json);
+            }
+        } catch (CuonaException | IOException e) {
             e.printStackTrace();
-            throw new CoronaException(e);
+            throw new CuonaException(e);
         }
     }
 
@@ -188,7 +190,7 @@ public class Corona {
         mWriteLogMessage = message;
     }
 
-    private CoronaWriterTag getWriteTagFromIntent(Intent intent) throws CoronaException {
+    private CuonaWritableTag getWriteTagFromIntent(Intent intent) throws CuonaException {
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -200,12 +202,6 @@ public class Corona {
                 || intent.getAction().equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
             Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
             if (tag != null) {
-                /*
-                IsoDep isoDep = IsoDep.get(tag);
-                if (isoDep != null) {
-                    return new CNFCT4WriterTag(isoDep);
-                }
-                */
                 MifareUltralight mul = MifareUltralight.get(tag);
                 if (mul != null) {
 
@@ -213,7 +209,7 @@ public class Corona {
 
                     Ndef ndef = Ndef.get(tag);
                     if (ndef == null) {
-                        throw new CoronaException("Not NDEF tag");
+                        throw new CuonaException("Not NDEF tag");
                     }
 
                     NdefMessage msg;
@@ -221,7 +217,7 @@ public class Corona {
                         ndef.connect();
                         msg = ndef.getNdefMessage();
                     } catch (IOException | FormatException e) {
-                        throw new CoronaException(e);
+                        throw new CuonaException(e);
                     } finally {
                         try {
                             ndef.close();
@@ -229,7 +225,7 @@ public class Corona {
                             e.printStackTrace();
                         }
                     }
-                    if(msg == null) throw new CoronaException("Can not available WifiHelper!!");
+                    if(msg == null) throw new CuonaException("Can not available WifiHelper!!");
 
                     NdefRecord[] records = msg.getRecords();
                     for (NdefRecord rec : records) {
@@ -292,14 +288,14 @@ public class Corona {
                         }
                     }
 
-                    return new CNFCT2WriterTag(mul);
+                    return new CuonaWritableT2(mul);
                 }
             }
         }
         return null;
     }
 
-    private CoronaReaderTag getReadTagFromIntent(Intent intent, boolean sendLog) throws CoronaException {
+    private CoronaReaderTag getReadTagFromIntent(Intent intent, boolean sendLog) throws CuonaException {
         // GPSの許可がなければwifiに接続できないため、事前に確認（ログ送信にも使用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -321,7 +317,7 @@ public class Corona {
 
         Ndef ndef = Ndef.get(tag);
         if (ndef == null) {
-            throw new CoronaException("Not NDEF tag");
+            throw new CuonaException("Not NDEF tag");
         }
 
         NdefMessage msg;
@@ -329,8 +325,8 @@ public class Corona {
             ndef.connect();
             msg = ndef.getNdefMessage();
         } catch (IOException | FormatException e) {
-            Log.d("CoronaException", e.toString());
-            throw new CoronaException(e);
+            Log.d("CuonaException", e.toString());
+            throw new CuonaException(e);
         } finally {
             try {
                 ndef.close();
@@ -338,7 +334,7 @@ public class Corona {
                 e.printStackTrace();
             }
         }
-        if(msg == null) throw new CoronaException("Can not available WifiHelper!!");
+        if(msg == null) throw new CuonaException("Can not available WifiHelper!!");
 
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {
@@ -405,7 +401,7 @@ public class Corona {
             }
         }
 
-        throw new CoronaException("Not Corona tag");
+        throw new CuonaException("Not Cuona tag");
     }
 
     public static class SendLog extends AsyncTask<String[][], Void, JSONObject> {
