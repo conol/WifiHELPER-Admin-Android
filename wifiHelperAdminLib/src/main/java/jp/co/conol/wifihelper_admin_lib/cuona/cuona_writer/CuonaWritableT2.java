@@ -13,9 +13,11 @@ import java.nio.charset.StandardCharsets;
 public class CuonaWritableT2 extends CuonaWritableTag {
 
     private MifareUltralight mul;
+    private boolean useShortKeyFlag;
 
-    public CuonaWritableT2(MifareUltralight mul) {
+    public CuonaWritableT2(MifareUltralight mul, boolean useShortKeyFlag) {
         this.mul = mul;
+        this.useShortKeyFlag = useShortKeyFlag;
     }
 
     public void writeJson(String json) throws IOException {
@@ -32,7 +34,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
 
         byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
 
-        NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, useShortKey);
+        NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, useShortKeyFlag);
         NdefMessage msg = new NdefMessage(rec);
 
         Ndef ndef = Ndef.get(mul.getTag());

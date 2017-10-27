@@ -1,16 +1,14 @@
-package jp.co.conol.wifihelper_admin_lib.cuona.corona_reader;
+package jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader;
 
 import android.nfc.NdefRecord;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.Formatter;
 
-public class CoronaReaderTag {
+import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_CUONA;
+import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_SEAL;
+import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_UNKNOWN;
 
-    private static final int TAG_TYPE_UNKNOWN = 0;
-    private static final int TAG_TYPE_CORONA = 1;
-    private static final int TAG_TYPE_SEAL = 2;
+public class CuonaReaderLegacyTag extends CuonaReaderTag {
 
     private static final byte[] CNFC_MAGIC = { 0x63, 0x6f, 0x01 };
     private static final int CNFC_DEVICEID_LENGTH = 7;
@@ -19,25 +17,19 @@ public class CoronaReaderTag {
     private final byte[] deviceId;
     private final byte[] jsonData;
 
-    private CoronaReaderTag(byte[] deviceId, byte[] jsonData) {
+    private CuonaReaderLegacyTag(byte[] deviceId, byte[] jsonData) {
         this.deviceId = deviceId;
         this.jsonData = jsonData;
     }
 
-    public byte[] getDeviceIdData() {
+    @Override
+    public byte[] getDeviceId() {
         return deviceId;
     }
 
-    public byte[] getJsonData() {
+    @Override
+    public byte[] getJSONData() {
         return jsonData;
-    }
-
-    public String getDeviceIdString() {
-        Formatter fmt = new Formatter();
-        for (byte b: deviceId) {
-            fmt.format("%02X", b & 0xff);
-        }
-        return fmt.toString();
     }
 
     public int getType() {
@@ -48,20 +40,17 @@ public class CoronaReaderTag {
             return TAG_TYPE_SEAL;
         }
         if (deviceId[0] == 2) {
-            return TAG_TYPE_CORONA;
+            return TAG_TYPE_CUONA;
         }
         return TAG_TYPE_UNKNOWN;
     }
 
-    public String getJsonString() {
-        try {
-            return new String(jsonData, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public int getSecurityStrength() {
+        return 0;
     }
 
-    public static CoronaReaderTag get(NdefRecord ndef) {
+    public static CuonaReaderLegacyTag get(NdefRecord ndef) {
         if (ndef.getTnf() != NdefRecord.TNF_EXTERNAL_TYPE) {
             return null;
         }
@@ -82,6 +71,7 @@ public class CoronaReaderTag {
         byte[] jsonData = Arrays.copyOfRange(payload, CNFC_MAGIC.length + CNFC_DEVICEID_LENGTH,
                 payload.length);
 
-        return new CoronaReaderTag(deviceId, jsonData);
+        return new CuonaReaderLegacyTag(deviceId, jsonData);
     }
+
 }

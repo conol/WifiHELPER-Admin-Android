@@ -243,12 +243,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     // nfcに書き込むjson
                     String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
 
-                    // NFCのタイプがシールの場合はRSA512を使用
-                    boolean useShortKey = false;
-                    if(mDeviceType == Cuona.TAG_TYPE_SEAL) useShortKey = true;
-
                     try {
-                        mCuona.writeJson(intent, jsonString, useShortKey);
+                        mCuona.writeJson(intent, jsonString);
 
                         Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                         writeDoneIntent.putExtra("ssid", ssid);

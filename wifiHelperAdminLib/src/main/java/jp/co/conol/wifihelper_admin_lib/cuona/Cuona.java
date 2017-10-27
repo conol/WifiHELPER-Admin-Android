@@ -40,7 +40,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
-import jp.co.conol.wifihelper_admin_lib.cuona.corona_reader.CoronaReaderTag;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderLegacyTag;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderSecureTag;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableT2;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableTag;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
@@ -123,7 +125,7 @@ public class Cuona {
     }
 
     public int readType(Intent intent) throws CuonaException {
-        CoronaReaderTag tag;
+        CuonaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, false);
         } catch (CuonaException e) {
@@ -138,7 +140,7 @@ public class Cuona {
     }
 
     public String readDeviceId(Intent intent) throws CuonaException {
-        CoronaReaderTag tag;
+        CuonaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, false);
         } catch (CuonaException e) {
@@ -153,7 +155,7 @@ public class Cuona {
     }
 
     public String readJson(Intent intent) throws CuonaException {
-        CoronaReaderTag tag;
+        CuonaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, true);
         } catch (CuonaException e) {
@@ -161,21 +163,17 @@ public class Cuona {
             throw new CuonaException(e);
         }
         if(tag != null) {
-            return tag.getJsonString();
+            return tag.getJSONString();
         } else {
             return null;
         }
     }
 
-    public void writeJson(Intent intent, String json, boolean useShortKey) throws CuonaException {
+    public void writeJson(Intent intent, String json) throws CuonaException {
         CuonaWritableTag tag;
         try {
             tag = getWriteTagFromIntent(intent);
-
-            if(tag != null) {
-                tag.setUseShortKey(useShortKey);
-                tag.writeJson(json);
-            }
+            if(tag != null) tag.writeJson(json);
         } catch (CuonaException | IOException e) {
             e.printStackTrace();
             throw new CuonaException(e);
@@ -191,6 +189,10 @@ public class Cuona {
     }
 
     private CuonaWritableTag getWriteTagFromIntent(Intent intent) throws CuonaException {
+
+        // 書き込みの暗号化にRSA512を使用するか否か（useShortKey = true で使用）
+        boolean useShortKey = false;
+
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -229,8 +231,19 @@ public class Cuona {
 
                     NdefRecord[] records = msg.getRecords();
                     for (NdefRecord rec : records) {
-                        CoronaReaderTag t = CoronaReaderTag.get(rec);
-                        if (t != null) {
+
+                        CuonaReaderTag cuonaReaderTag = null;
+
+                        CuonaReaderSecureTag stag = CuonaReaderSecureTag.get(rec);
+                        if (stag != null) {
+                            cuonaReaderTag = stag;
+                        }
+                        CuonaReaderLegacyTag ltag = CuonaReaderLegacyTag.get(rec);
+                        if (ltag != null) {
+                            cuonaReaderTag = ltag;
+                        }
+
+                        if (cuonaReaderTag != null) {
 
                             // 位置情報の取得
                             GetLocation location = new GetLocation(context);
@@ -240,7 +253,7 @@ public class Cuona {
                             }
 
                             // デバイスIDをサーバーで送信可能な形式に変換
-                            String deviceId = Util.Transform.deviceIdForServer(t.getDeviceIdString());
+                            String deviceId = Util.Transform.deviceIdForServer(cuonaReaderTag.getDeviceIdString());
 
                             // 現在のログを作成
                             String currentLog[] = {deviceId, locationInfo, mReadLogMessage};
@@ -285,17 +298,22 @@ public class Cuona {
                                 editor.putString("savedLog", gson.toJson(toSendLog));
                                 editor.apply();
                             }
+
+                            // NFCのタイプがシールの場合はRSA512を使用
+                            if(cuonaReaderTag.getType() == Cuona.TAG_TYPE_SEAL) useShortKey = true;
                         }
                     }
 
-                    return new CuonaWritableT2(mul);
+
+
+                    return new CuonaWritableT2(mul, useShortKey);
                 }
             }
         }
         return null;
     }
 
-    private CoronaReaderTag getReadTagFromIntent(Intent intent, boolean sendLog) throws CuonaException {
+    private CuonaReaderTag getReadTagFromIntent(Intent intent, boolean sendLog) throws CuonaException {
         // GPSの許可がなければwifiに接続できないため、事前に確認（ログ送信にも使用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -338,8 +356,19 @@ public class Cuona {
 
         NdefRecord[] records = msg.getRecords();
         for (NdefRecord rec : records) {
-            CoronaReaderTag t = CoronaReaderTag.get(rec);
-            if (t != null) {
+
+            CuonaReaderTag cuonaReaderTag = null;
+
+            CuonaReaderSecureTag stag = CuonaReaderSecureTag.get(rec);
+            if (stag != null) {
+                cuonaReaderTag = stag;
+            }
+            CuonaReaderLegacyTag ltag = CuonaReaderLegacyTag.get(rec);
+            if (ltag != null) {
+                cuonaReaderTag = ltag;
+            }
+
+            if (cuonaReaderTag != null) {
 
                 if (sendLog) {
 
@@ -351,7 +380,7 @@ public class Cuona {
                     }
 
                     // デバイスIDをサーバーで送信可能な形式に変換
-                    String deviceId = Util.Transform.deviceIdForServer(t.getDeviceIdString());
+                    String deviceId = Util.Transform.deviceIdForServer(cuonaReaderTag.getDeviceIdString());
 
                     // 現在のログを作成
                     String currentLog[] = {deviceId, locationInfo, mReadLogMessage};
@@ -397,7 +426,7 @@ public class Cuona {
                     }
                 }
 
-                return t;
+                return cuonaReaderTag;
             }
         }
 
