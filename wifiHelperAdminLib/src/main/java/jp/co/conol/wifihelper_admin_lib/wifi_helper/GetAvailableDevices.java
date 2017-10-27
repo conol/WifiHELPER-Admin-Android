@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import jp.co.conol.wifihelper_admin_lib.Util;
+
 /**
  * Created by Masafumi_Ito on 2017/10/12.
  */
@@ -34,12 +36,18 @@ public class GetAvailableDevices extends AsyncTask<Void, Void, List<String>> {
 
     protected List<String> doInBackground(Void... params){
 
-        String jsonString = httpGet("http://13.112.232.171/api/services/H7Pa7pQaVxxG.json");
+        String responseJsonString = null;
+        try {
+            responseJsonString = Util.Http.get("http://13.112.232.171/api/services/H7Pa7pQaVxxG.json", null);
+        } catch (Exception e) {
+            onFailure(e);
+        }
+
         List<String> deviceIdList = new ArrayList<>();
 
-        if(jsonString != null) {
+        if(responseJsonString != null) {
             try {
-                JSONArray jsonArray = new JSONArray(jsonString);
+                JSONArray jsonArray = new JSONArray(responseJsonString);
 
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jRec = jsonArray.getJSONObject(i);
@@ -67,37 +75,5 @@ public class GetAvailableDevices extends AsyncTask<Void, Void, List<String>> {
 
     private void onFailure(Exception e) {
         this.mAsyncCallback.onFailure(e);
-    }
-
-    private String httpGet(String urls){
-
-        HttpURLConnection urlCon;
-        InputStream in;
-
-        try {
-            urlCon = (HttpURLConnection) new URL(urls).openConnection();
-            urlCon.setRequestMethod("GET");
-            urlCon.setDoInput(true);
-            urlCon.connect();
-
-            String str_json;
-            in = urlCon.getInputStream();
-            InputStreamReader objReader = new InputStreamReader(in);
-            BufferedReader objBuf = new BufferedReader(objReader);
-            StringBuilder strBuilder = new StringBuilder();
-            String sLine;
-            while((sLine = objBuf.readLine()) != null){
-                strBuilder.append(sLine);
-            }
-            str_json = strBuilder.toString();
-            in.close();
-
-            return str_json;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            onFailure(e);
-            return null;
-        }
     }
 }
