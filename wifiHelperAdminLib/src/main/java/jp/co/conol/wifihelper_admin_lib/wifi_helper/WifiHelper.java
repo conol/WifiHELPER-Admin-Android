@@ -27,6 +27,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
+import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
+import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.receiver.WifiExpiredBroadcastReceiver;
 
@@ -261,19 +263,57 @@ public class WifiHelper {
         return false;
     }
 
-    public static String createJson(String ssid, String pass, int kind, Integer days) {
-        return "{\"wifi\":{\"ssid\":\"" + ssid + "\",\"pass\":\"" + pass + "\",\"kind\":" + kind + ",\"days\":" + days + "}}";
+    public static Wifi readWifiSetting(Intent intent, Cuona cuona) throws CuonaException {
+        try {
+            return parseJsonToObj(cuona.readJson(intent));
+        } catch (CuonaException | JSONException e) {
+            e.printStackTrace();
+            throw new CuonaException(e);
+        }
     }
 
-    public static Wifi parseJsonToObj(String targetJson) throws JSONException {
+    public static void writeWifiSetting(Intent intent, Cuona cuona, Wifi wifi) throws CuonaException {
+        try {
+            String readString = cuona.readJson(intent);
+
+            // 読み込んだjson
+            JSONObject readJson = new JSONObject(readString);
+
+            // 読み込んだjsonからWifiHelperの情報を削除
+            readJson.remove("wifi");
+
+            // 読み込んだjsonに新しい情報を書き込む
+            JSONObject writeJson = new JSONObject();
+            writeJson.put("ssid", wifi.getSsid());
+            writeJson.put("pass", wifi.getPassword());
+            writeJson.put("kind", wifi.getKind());
+            if(wifi.getDays() != null) writeJson.put("days", wifi.getDays());
+            readJson.put("wifi", writeJson);
+            cuona.writeJson(intent, readJson.toString());
+
+        } catch (CuonaException | JSONException e) {
+            e.printStackTrace();
+            throw new CuonaException(e);
+        }
+    }
+
+    private static Wifi parseJsonToObj(String targetJson) throws JSONException {
         JSONObject jsonObject = new JSONObject(targetJson);
         JSONObject wifi = jsonObject.getJSONObject("wifi");
+
+        // daysが設定されていない場合はnullにする
+        Integer days ;
+        try {
+            days = wifi.getInt("days");
+        } catch (Exception e) {
+            days = null;
+        }
 
         return new Wifi(
                 wifi.getString("ssid"),
                 wifi.getString("pass"),
                 wifi.getInt("kind"),
-                wifi.getInt("days")
+                days
         );
     }
 

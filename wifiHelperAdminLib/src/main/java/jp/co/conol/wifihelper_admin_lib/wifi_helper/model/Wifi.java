@@ -11,7 +11,7 @@ public class Wifi {
     private int kind;
     private Integer days;
 
-    public Wifi(String ssid, String password, int kind, int days) {
+    public Wifi(String ssid, String password, int kind, Integer days) {
         this.ssid = ssid;
         this.password = password;
         this.kind = kind;

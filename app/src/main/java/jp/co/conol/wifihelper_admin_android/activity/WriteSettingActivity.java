@@ -1,6 +1,7 @@
 package jp.co.conol.wifihelper_admin_android.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -36,6 +37,7 @@ import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
+import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
 public class WriteSettingActivity extends AppCompatActivity implements TextWatcher {
 
@@ -58,6 +60,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     private ConstraintLayout mScanDialogConstraintLayout;
     private final int PERMISSION_REQUEST_CODE = 1000;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -210,6 +213,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     }
 
 
+
     @Override
     protected void onNewIntent(final Intent intent) {
         // サーバーに登録されているデバイスIDを取得
@@ -240,11 +244,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         expireDate = null;
                     }
 
-                    // nfcに書き込むjson
-                    String jsonString = WifiHelper.createJson(ssid, pass, mWifiKind, expireDate);
-
                     try {
-                        mCuona.writeJson(intent, jsonString);
+                        // nfcに書き込み
+                        WifiHelper.writeWifiSetting(intent, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate));
 
                         Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                         writeDoneIntent.putExtra("ssid", ssid);

@@ -103,19 +103,15 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         } else {
                             // デバイスIDのリストを作成
-                            for(int i = 0; i < deviceIdList.size(); i++) {
-                                mDeviceIds.add(deviceIdList.get(i));
-                            }
+                            mDeviceIds.addAll(deviceIdList);
                         }
 
                         // nfc読み込み処理実行
                         int deviceType;
                         String deviceId;
-                        String jsonString;
                         try {
                             deviceType = mCuona.readType(intent);
                             deviceId = mCuona.readDeviceId(intent);
-                            jsonString = mCuona.readJson(intent);
                         } catch (CuonaException e) {
                             Log.d("CuonaReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
@@ -126,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
-                        if(mDeviceIds != null && deviceId != null && jsonString != null) {
+                        if(mDeviceIds != null && deviceId != null) {
 
                             // デバイスIDを小文字にする
                             deviceId = deviceId.toLowerCase();
@@ -140,7 +136,8 @@ public class MainActivity extends AppCompatActivity {
                             // 含まれていれば処理を進める
                             else {
                                 try {
-                                    final Wifi wifi = WifiHelper.parseJsonToObj(jsonString);
+                                    // Wifi設定情報を取得
+                                    final Wifi wifi = WifiHelper.readWifiSetting(intent, mCuona);
 
                                     Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
                                     writeSettingIntent.putExtra("ssid", wifi.getSsid());
@@ -153,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                                     closeScanPage();
                                 }
                                 // 読み込んだnfcがWifiHelperに未対応の場合
-                                catch (JSONException e) {
+                                catch (CuonaException e) {
                                     e.printStackTrace();
                                     new AlertDialog.Builder(MainActivity.this)
                                             .setMessage(getString(R.string.error_read_service_failed))
