@@ -229,9 +229,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         return;
                     } else {
                         // デバイスIDのリストを作成
-                        for(int i = 0; i < deviceIdList.size(); i++) {
-                            mDeviceIds.add(deviceIdList.get(i));
-                        }
+                        mDeviceIds.addAll(deviceIdList);
                     }
 
                     // 入力されている設定の取得
