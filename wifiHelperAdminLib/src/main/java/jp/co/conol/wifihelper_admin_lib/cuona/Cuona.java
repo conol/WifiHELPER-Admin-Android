@@ -173,7 +173,7 @@ public class Cuona {
         CuonaWritableTag tag;
         try {
             tag = getWriteTagFromIntent(intent);
-            if(tag != null) tag.writeJson(json);
+            if(tag != null) tag.writeJSON(json);
         } catch (CuonaException | IOException e) {
             e.printStackTrace();
             throw new CuonaException(e);
@@ -189,9 +189,6 @@ public class Cuona {
     }
 
     private CuonaWritableTag getWriteTagFromIntent(Intent intent) throws CuonaException {
-
-        // 書き込みの暗号化にRSA512を使用するか否か（useShortKey = true で使用）
-        boolean useShortKey = false;
 
         // GPSの許可を確認（ログ送信用）
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -298,15 +295,10 @@ public class Cuona {
                                 editor.putString("savedLog", gson.toJson(toSendLog));
                                 editor.apply();
                             }
-
-                            // NFCのタイプがシールの場合はRSA512を使用
-                            if(cuonaReaderTag.getType() == Cuona.TAG_TYPE_SEAL) useShortKey = true;
                         }
                     }
 
-
-
-                    return new CuonaWritableT2(mul, useShortKey);
+                    return new CuonaWritableT2(mul);
                 }
             }
         }

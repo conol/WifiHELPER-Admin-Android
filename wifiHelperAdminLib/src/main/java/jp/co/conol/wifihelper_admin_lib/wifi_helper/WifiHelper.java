@@ -210,13 +210,14 @@ public class WifiHelper {
     }
 
     public static boolean tryDisconnect(Context context) {
-        try {
-            WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
+        if(wifiManager != null) {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-
-            return wifiManager.disableNetwork(wifiInfo.getNetworkId());
-        } catch (NullPointerException e) {
-            Log.d("onFailure: ", e.toString());
+            try {
+                return wifiManager.disableNetwork(wifiInfo.getNetworkId());
+            } catch (NullPointerException e) {
+                Log.d("onFailure: ", e.toString());
+            }
         }
 
         return false;
@@ -227,13 +228,13 @@ public class WifiHelper {
     }
 
     public static boolean isEnable(Context context) {
-        WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
-        return wifiManager.isWifiEnabled();
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(WIFI_SERVICE);
+        return wifiManager != null && wifiManager.isWifiEnabled();
     }
 
     public static void setEnable(Context context, boolean state) {
         WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
-        wifiManager.setWifiEnabled(state);
+        if(wifiManager != null) wifiManager.setWifiEnabled(state);
     }
 
     // 手動で設定したWifiは削除不可能（Android 6.0 以降）
@@ -241,17 +242,20 @@ public class WifiHelper {
     public static boolean deleteAccessPoint(Context context, String ssid) {
         WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
 
-        List<WifiConfiguration> configurations = wifiManager.getConfiguredNetworks();
-        if (configurations != null) {
-            for (WifiConfiguration config : configurations) {
-                if (config.SSID.equals('"' + ssid + '"')) {
-                    return wifiManager.removeNetwork(config.networkId);
+        if(wifiManager != null) {
+            List<WifiConfiguration> configurations = wifiManager.getConfiguredNetworks();
+            if (configurations != null) {
+                for (WifiConfiguration config : configurations) {
+                    if (config.SSID.equals('"' + ssid + '"')) {
+                        return wifiManager.removeNetwork(config.networkId);
+                    }
                 }
             }
-        }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            wifiManager.saveConfiguration();
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                wifiManager.saveConfiguration();
+            }
         }
 
         return false;

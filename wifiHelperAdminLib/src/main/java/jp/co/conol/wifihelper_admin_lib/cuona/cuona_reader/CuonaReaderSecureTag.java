@@ -5,10 +5,7 @@ import android.nfc.NdefRecord;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.KeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.MessageDigest;
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -25,16 +22,13 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
     private static final String CUONA_TAG_TYPE = "cuona";
     private static final byte CUONA_MAGIC_1 = 0x63;
     private static final byte CUONA_MAGIC_2 = 0x6f;
-    private static final byte CUONA_MAGIC_3_AES256_RSA2048 = 0x02;
-    private static final byte CUONA_MAGIC_3_AES256_RSA512 = 0x03;
+    private static final byte CUONA_MAGIC_3 = 0x04;
 
     private final byte[] deviceId;
     private final byte[] jsonData;
-    private final boolean useShortKey;
 
-    private CuonaReaderSecureTag(byte[] deviceId, byte[] content, boolean useShortKey) {
+    private CuonaReaderSecureTag(byte[] deviceId, byte[] content) {
         this.deviceId = deviceId;
-        this.useShortKey = useShortKey;
         this.jsonData = Arrays.copyOfRange(content, 4, content.length);
     }
 
@@ -61,31 +55,27 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
 
     @Override
     public int getSecurityStrength() {
-        if (useShortKey) {
-            return 512;
-        } else {
-            return 2048;
-        }
+        return 256;
     }
 
-    private static byte[] decrypt(boolean useShortKey, byte[] encryptedSymKey, byte[] iv,
-                                  byte[] encryptedcontent) throws GeneralSecurityException {
+    private static byte[] decrypt(byte[] deviceId, byte[] iv, byte[] encryptedcontent)
+            throws GeneralSecurityException {
 
-        byte[] publicKeyData = useShortKey ? Keys.publicKeyData_512 : Keys.publicKeyData_2048;
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(deviceId);
+        byte[] key =  md.digest();
+        if (key.length != Keys.cuonaKey32B.length) {
+            throw new IllegalStateException("SHA-256 returns illegal length");
+        }
+        for (int i = 0; i < key.length; i++) {
+            key[i] ^= Keys.cuonaKey32B[i];
+        }
 
-        KeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyData);
-        PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
-
-        Cipher rsaDecryptor = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        rsaDecryptor.init(Cipher.DECRYPT_MODE, publicKey);
-        byte[] symKey = rsaDecryptor.doFinal(encryptedSymKey);
-
-        Cipher aesDecryptor = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        aesDecryptor.init(Cipher.DECRYPT_MODE, new SecretKeySpec(symKey, "AES"),
+        Cipher decryptor = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        decryptor.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"),
                 new IvParameterSpec(iv));
-        byte[] content = aesDecryptor.doFinal(encryptedcontent);
 
-        return content;
+        return decryptor.doFinal(encryptedcontent);
     }
 
     public static CuonaReaderSecureTag get(NdefRecord ndef) {
@@ -98,7 +88,7 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
         }
 
         byte[] payload = ndef.getPayload();
-        if (payload.length < 8) {
+        if (payload.length < 5) {
             return null;
         }
 
@@ -107,38 +97,23 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
         byte magic2 = (byte) bis.read();
         byte magic3 = (byte) bis.read();
         int deviceIdLen = bis.read();
-        int eslenLow = bis.read();
-        int eslenHigh = bis.read();
         int ivLen = bis.read();
-        int reserved = bis.read();
 
-        if (magic1 != CUONA_MAGIC_1 || magic2  != CUONA_MAGIC_2 || reserved != 0) {
+        if (magic1 != CUONA_MAGIC_1 || magic2  != CUONA_MAGIC_2 || magic3 != CUONA_MAGIC_3) {
             return null;
         }
 
-        boolean useShortKey;
-        if  (magic3 == CUONA_MAGIC_3_AES256_RSA512) {
-            useShortKey = true;
-        } else if  (magic3 == CUONA_MAGIC_3_AES256_RSA2048) {
-            useShortKey = false;
-        } else {
-            return null;
-        }
-
-        int encryptedSymKeyLen = (eslenHigh << 8) + eslenLow;
-        int encryptedcontentLen = payload.length - (8 + deviceIdLen + ivLen + encryptedSymKeyLen);
+        int encryptedcontentLen = payload.length - (5 + deviceIdLen + ivLen);
         if (encryptedcontentLen < 0) {
             return null;
         }
 
         byte[] deviceId = new byte[deviceIdLen];
-        byte[] encryptedSymKey = new byte[encryptedSymKeyLen];
         byte[] iv = new byte[ivLen];
         byte[] encryptedcontent = new byte[encryptedcontentLen];
 
         try {
             bis.read(deviceId);
-            bis.read(encryptedSymKey);
             bis.read(iv);
             bis.read(encryptedcontent);
         } catch (IOException e) {
@@ -147,7 +122,7 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
 
         byte[] content;
         try {
-            content = decrypt(useShortKey, encryptedSymKey, iv, encryptedcontent);
+            content = decrypt(deviceId, iv, encryptedcontent);
         } catch (GeneralSecurityException e) {
             return null;
         }
@@ -157,6 +132,6 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
             return null;
         }
 
-        return new CuonaReaderSecureTag(deviceId, content, useShortKey);
+        return new CuonaReaderSecureTag(deviceId, content);
     }
 }

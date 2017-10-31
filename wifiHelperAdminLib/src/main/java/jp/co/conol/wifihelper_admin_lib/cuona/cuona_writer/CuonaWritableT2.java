@@ -9,18 +9,19 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class CuonaWritableT2 extends CuonaWritableTag {
 
-    private MifareUltralight mul;
-    private boolean useShortKeyFlag = false;
+    private static final int T2_DEVICE_ID_LENGTH = 9;
 
-    public CuonaWritableT2(MifareUltralight mul, boolean useShortKeyFlag) {
+    private MifareUltralight mul;
+
+    public CuonaWritableT2(MifareUltralight mul) {
         this.mul = mul;
-        this.useShortKeyFlag = useShortKeyFlag;
     }
 
-    public void writeJson(String json) throws IOException {
+    public void writeJSON(String json) throws IOException {
         Log.i("nfc", "T2 detected");
 
         if (!mul.isConnected()) {
@@ -29,12 +30,13 @@ public class CuonaWritableT2 extends CuonaWritableTag {
 
         byte[] deviceId = mul.readPages(0);
         HexUtils.logd("readPages(0)", deviceId);
+        deviceId = Arrays.copyOf(deviceId, T2_DEVICE_ID_LENGTH);
 
         mul.close();
 
         byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
 
-        NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, useShortKeyFlag);
+        NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData);
         NdefMessage msg = new NdefMessage(rec);
 
         Ndef ndef = Ndef.get(mul.getTag());
