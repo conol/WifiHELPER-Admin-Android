@@ -94,7 +94,7 @@ public class Cuona {
         String savedLog[][] = gson.fromJson(pref.getString("savedLog", null), String[][].class);
 
         // ネットに繋がっていればログの送信
-        if(savedLog != null && (Util.Network.isConnected(context) || WifiHelper.isEnable(context))) {
+        if(savedLog != null && (Util.Network.isEnable(context) || Util.Wifi.isEnable(context))) {
             new SendLog(new SendLog.AsyncCallback() {
                 @Override
                 public void onSuccess(JSONObject responseJson) {
@@ -273,7 +273,7 @@ public class Cuona {
                             }
 
                             // ネットに繋がっていればログの送信
-                            if(Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
+                            if(Util.Network.isEnable(context) || Util.Wifi.isEnable(context)) {
                                 new SendLog(new SendLog.AsyncCallback() {
                                     @Override
                                     public void onSuccess(JSONObject responseJson) {
@@ -394,7 +394,7 @@ public class Cuona {
                     }
 
                     // ネットに繋がっていればログの送信
-                    if (Util.Network.isConnected(context) || WifiHelper.isEnable(context)) {
+                    if (Util.Network.isEnable(context) || Util.Wifi.isEnable(context)) {
                         new SendLog(new SendLog.AsyncCallback() {
                             @Override
                             public void onSuccess(JSONObject responseJson) {

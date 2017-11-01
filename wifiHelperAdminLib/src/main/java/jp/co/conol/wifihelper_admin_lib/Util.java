@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -17,6 +18,8 @@ import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 
+import static android.content.Context.WIFI_SERVICE;
+
 /**
  * Created by Masafumi_Ito on 2017/09/28.
  */
@@ -26,11 +29,22 @@ public class Util {
 
     public static class SharedPref {
 
-        public static void save(Context context, String key, String objString) {
+        /**
+         * SharedPreferenceにjsonを保存
+         * @param context
+         * @param key 取り出すためのKey
+         * @param jsonString 保存するjson
+         */
+        public static void save(Context context, String key, String jsonString) {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-            pref.edit().putString(key ,objString).apply();
+            pref.edit().putString(key ,jsonString).apply();
         }
 
+        /**
+         * SharedPreferenceからjsonを取得
+         * @param context
+         * @param key 取り出すためのKey
+         */
         public static String get(Context context, String key) {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
             return pref.getString(key, null);
@@ -44,11 +58,24 @@ public class Util {
          * @param context
          * @return 接続：true / 未接続：false
          */
-        public static boolean isConnected(Context context) {
+        public static boolean isEnable(Context context) {
             ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo info = cm.getActiveNetworkInfo();
 
             return info != null && info.isConnected();
+        }
+    }
+
+    public static class Wifi {
+
+        /**
+         * Wifiに接続されているかをチェック
+         * @param context
+         * @return 接続：true / 未接続：false
+         */
+        public static boolean isEnable(Context context) {
+            WifiManager wifiManager = (WifiManager)context.getApplicationContext().getSystemService(WIFI_SERVICE);
+            return wifiManager.isWifiEnabled();
         }
     }
 
@@ -96,6 +123,40 @@ public class Util {
                 con.setRequestMethod("POST");
                 con.setInstanceFollowRedirects(false);
                 con.setRequestProperty("Accept-Language", "jp");
+                con.setDoOutput(true);
+                con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                if(appToken != null || appToken != "") con.setRequestProperty("Authorization", "Bearer " + appToken);
+                OutputStream os = con.getOutputStream();
+                PrintStream ps = new PrintStream(os);
+                ps.print(body);
+                ps.close();
+
+                // レスポンスを取得
+                BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                responseJsonString = reader.readLine();
+
+                con.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("HttpException", e.toString());
+            }
+
+            return responseJsonString;
+        }
+
+        public static String patch(String url, String appToken, String body) {
+            String responseJsonString = null;
+            try {
+                String buffer = "";
+                HttpURLConnection con = null;
+                URL urlTmp = new URL(url);
+                con = (HttpURLConnection) urlTmp.openConnection();
+                con.setRequestMethod("POST");
+                con.setInstanceFollowRedirects(false);
+                con.setRequestProperty("Accept-Language", "jp");
+                con.setRequestProperty("X-HTTP-Method", "PATCH"); // Microsoft
+                con.setRequestProperty("X-HTTP-Method-Override", "PATCH");  // Google/GData
+                con.setRequestProperty("X-Method-Override", "PATCH");
                 con.setDoOutput(true);
                 con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 if(appToken != null || appToken != "") con.setRequestProperty("Authorization", "Bearer " + appToken);
@@ -179,6 +240,7 @@ public class Util {
             return responseJsonString;
         }
 
+
     }
 
     public static class Transform {
@@ -187,11 +249,8 @@ public class Util {
         public static String deviceIdForServer(String deviceId) {
             String deviceIdTmp = deviceId.replace(" ", "").toLowerCase();
             StringBuilder deviceIdToSend = new StringBuilder(deviceIdTmp);
-
-            int deviceIdToSendLength = deviceIdToSend.length();
-
-            for (int i = 0; i < (deviceIdToSendLength - 2) / 2; i++) {
-                deviceIdToSend.insert((deviceIdToSendLength - 2) - (2 * i), " ");
+            for (int i = 0; i < 6; i++) {
+                deviceIdToSend.insert((deviceIdToSend.length() - 2) - (2 * i), " ");
             }
             return deviceIdToSend.toString();
         }
@@ -218,4 +277,3 @@ public class Util {
         }
     }
 }
-
