@@ -286,6 +286,7 @@ public class WifiHelper {
 
             // 読み込んだjsonに新しい情報を書き込む
             JSONObject writeJson = new JSONObject();
+            writeJson.put("id", "H7Pa7pQaVxxG");
             writeJson.put("ssid", wifi.getSsid());
             writeJson.put("pass", wifi.getPassword());
             writeJson.put("kind", wifi.getKind());
