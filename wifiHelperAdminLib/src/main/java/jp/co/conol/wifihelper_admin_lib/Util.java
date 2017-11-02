@@ -249,8 +249,8 @@ public class Util {
         public static String deviceIdForServer(String deviceId) {
             String deviceIdTmp = deviceId.replace(" ", "").toLowerCase();
             StringBuilder deviceIdToSend = new StringBuilder(deviceIdTmp);
-            for (int i = 0; i < 6; i++) {
-                deviceIdToSend.insert((deviceIdToSend.length() - 2) - (2 * i), " ");
+            for (int i = 0; i < (deviceIdTmp.length() - 2) / 2; i++) {
+                deviceIdToSend.insert((deviceIdTmp.length() - 2) - (2 * i), " ");
             }
             return deviceIdToSend.toString();
         }
