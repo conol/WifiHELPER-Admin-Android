@@ -15,6 +15,9 @@ public class CuonaWritableT2 extends CuonaWritableTag {
 
     private static final int T2_DEVICE_ID_LENGTH = 9;
 
+    private static final byte T2_CMD_GET_VERSION = 0x60;
+    private static final byte T2_CMD_PWD_AUTH = 0x1b;
+
     private MifareUltralight mul;
 
     public CuonaWritableT2(MifareUltralight mul) {
@@ -28,9 +31,9 @@ public class CuonaWritableT2 extends CuonaWritableTag {
             mul.connect();
         }
 
-        byte[] deviceId = mul.readPages(0);
-        HexUtils.logd("readPages(0)", deviceId);
-        deviceId = Arrays.copyOf(deviceId, T2_DEVICE_ID_LENGTH);
+        byte[] page0 = mul.readPages(0);
+        HexUtils.logd("readPages(0)", page0);
+        byte[] deviceId = Arrays.copyOf(page0, T2_DEVICE_ID_LENGTH);
 
         mul.close();
 
@@ -62,5 +65,38 @@ public class CuonaWritableT2 extends CuonaWritableTag {
         }
 
     }
+
+    void t2_protect_work(byte[] page0) throws IOException {
+        ///////////////////
+        byte[] version = mul.transceive(new byte[] { T2_CMD_GET_VERSION  });
+        HexUtils.logd("T2 Version", version);
+        ///////////////////
+
+        int tagSize = page0[14] & 0xff;
+        Log.d("nfc", "Size=" + tagSize);
+        int configPage = 0;
+        if (tagSize == 0x12) {
+            // NTAG213
+            configPage = 0x29;
+        } else if (tagSize == 0x3e) {
+            // NTAG215
+            configPage = 0x83;
+        } else if (tagSize == 0x6d) {
+            // NTAG216
+            configPage = 0xe3;
+        }
+
+        if  (configPage != 0) {
+            byte[] config = mul.readPages(configPage);
+            HexUtils.logd("config", config);
+        }
+
+        byte[] pack = mul.transceive(new byte[] { T2_CMD_PWD_AUTH,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff });
+        //byte[] pack = mul.transceive(new byte[] { T2_CMD_PWD_AUTH, 0, 0, 0, 0 });
+        HexUtils.logd("pack", pack);
+
+    }
+
 
 }

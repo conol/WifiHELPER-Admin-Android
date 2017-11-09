@@ -13,6 +13,7 @@ import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
 import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcA;
@@ -44,6 +45,7 @@ import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderLegacyTag;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderSecureTag;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderTag;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableT2;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableT4;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableTag;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 
@@ -86,7 +88,11 @@ public class Cuona {
         };
 
         techList = new String[][]{
-                new String[] { NfcA.class.getName(), MifareUltralight.class.getName() }
+                // Typ2 2 Mifare UltraLight Seal, like NXP NTAG21x
+                new String[] { NfcA.class.getName(), MifareUltralight.class.getName(), Ndef.class.getName() },
+
+                // Type 4 Dynamic, like ST M24SRxx
+                new String[] { NfcA.class.getName(), IsoDep.class.getName(), Ndef.class.getName() }
         };
 
         // 本体に登録されているログを取得（2次元配列）
@@ -316,6 +322,10 @@ public class Cuona {
                     }
 
                     return new CuonaWritableT2(mul);
+                }
+                IsoDep isoDep = IsoDep.get(tag);
+                if (isoDep != null) {
+                    return new CuonaWritableT4(isoDep);
                 }
             }
         }
