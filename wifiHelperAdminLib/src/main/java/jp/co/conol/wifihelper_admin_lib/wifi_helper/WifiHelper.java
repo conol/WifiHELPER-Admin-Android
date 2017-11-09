@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import jp.co.conol.wifihelper_admin_lib.Util;
 import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
@@ -279,7 +280,10 @@ public class WifiHelper {
             String readString = cuona.readJsonNonLog(intent);
 
             // 読み込んだjson
-            JSONObject readJson = new JSONObject(readString);
+            JSONObject readJson = new JSONObject("{}");
+            if(!Objects.equals(readString, "")){
+                readJson = new JSONObject(readString);
+            }
 
             // 読み込んだjsonからWifiHelperの情報を削除
             readJson.remove("wifi");

@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
                             deviceId = deviceId.toLowerCase();
 
                             if (!mDeviceIds.contains(deviceId)) {
+                                Log.d("test", "test");
                                 new AlertDialog.Builder(MainActivity.this)
                                         .setMessage(getString(R.string.error_not_exist_in_devise_ids))
                                         .setPositiveButton(getString(R.string.ok), null)
