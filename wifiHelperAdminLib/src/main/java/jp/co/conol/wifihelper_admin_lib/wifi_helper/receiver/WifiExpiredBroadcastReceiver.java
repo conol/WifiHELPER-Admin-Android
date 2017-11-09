@@ -24,6 +24,6 @@ public class WifiExpiredBroadcastReceiver extends BroadcastReceiver {
         WifiHelper.tryDisconnect(context); // removeWifiSetting後に実行
 
         // メッセージを表示
-        Toast.makeText(context, "Wifi期限切れ ", Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "Wi-Fi Helperで設定したWi-Fiの有効期限が切れました", Toast.LENGTH_LONG).show();
     }
 }

@@ -59,8 +59,8 @@ public class Cuona {
     private final PendingIntent pendingIntent;
     private final IntentFilter[] intentFilters;
     private final String[][] techList;
-    private String mReadLogMessage = "read!";
-    private String mWriteLogMessage = "write!";
+    private String mReadLogMessage = "Read";
+    private String mWriteLogMessage = "Write";
     public static final int TAG_TYPE_UNKNOWN = 0;
     public static final int TAG_TYPE_CUONA = 1;
     public static final int TAG_TYPE_SEAL = 2;
@@ -159,6 +159,22 @@ public class Cuona {
         CuonaReaderTag tag;
         try {
             tag = getReadTagFromIntent(intent, true);
+        } catch (CuonaException e) {
+            e.printStackTrace();
+            throw new CuonaException(e);
+        }
+        if(tag != null) {
+            return tag.getJSONString();
+        } else {
+            return null;
+        }
+    }
+
+    // ログ送信を行わない（書き込み時に一度読み込むが、その際はログを送信したくないので、そこで使用）
+    public String readJsonNonLog(Intent intent) throws CuonaException {
+        CuonaReaderTag tag;
+        try {
+            tag = getReadTagFromIntent(intent, false);
         } catch (CuonaException e) {
             e.printStackTrace();
             throw new CuonaException(e);

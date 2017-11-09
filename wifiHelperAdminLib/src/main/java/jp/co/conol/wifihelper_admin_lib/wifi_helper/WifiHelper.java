@@ -276,7 +276,7 @@ public class WifiHelper {
 
     public static void writeWifiSetting(Intent intent, Cuona cuona, Wifi wifi) throws CuonaException {
         try {
-            String readString = cuona.readJson(intent);
+            String readString = cuona.readJsonNonLog(intent);
 
             // 読み込んだjson
             JSONObject readJson = new JSONObject(readString);
