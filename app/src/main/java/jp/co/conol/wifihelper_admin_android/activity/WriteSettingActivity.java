@@ -242,8 +242,10 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
                     try {
 
+                        String password = "0000";
+
                         // nfcに書き込み
-                        WifiHelper.writeWifiSetting(intent, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate));
+                        WifiHelper.writeWifiSetting(intent, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate), password);
 
                         Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
                         writeDoneIntent.putExtra("ssid", ssid);
@@ -257,6 +259,10 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         closeScanPage();
                     } catch (CuonaException e) {
                         e.printStackTrace();
+                        new AlertDialog.Builder(WriteSettingActivity.this)
+                                .setMessage(getString(R.string.error_not_owners))
+                                .setPositiveButton(getString(R.string.ok), null)
+                                .show();
                     }
                 }
 

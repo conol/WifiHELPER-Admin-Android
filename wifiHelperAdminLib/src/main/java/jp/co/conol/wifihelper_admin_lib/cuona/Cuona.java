@@ -92,7 +92,7 @@ public class Cuona {
                 new String[] { NfcA.class.getName(), MifareUltralight.class.getName(), Ndef.class.getName() },
 
                 // Type 4 Dynamic, like ST M24SRxx
-                new String[] { NfcA.class.getName(), IsoDep.class.getName(), Ndef.class.getName() }
+//                new String[] { NfcA.class.getName(), IsoDep.class.getName(), Ndef.class.getName() }
         };
 
         // 本体に登録されているログを取得（2次元配列）
@@ -160,7 +160,7 @@ public class Cuona {
             throw new CuonaException(e);
         }
         if(tag != null) {
-            return tag.getDeviceIdString();
+            return Util.Transform.deviceIdForServer(tag.getDeviceIdString());
         } else {
             return null;
         }
@@ -197,35 +197,11 @@ public class Cuona {
         }
     }
 
-    public void writeJson(Intent intent, String json) throws CuonaException {
+    public void writeJson(Intent intent, String json, String password) throws CuonaException {
         CuonaWritableTag tag;
         try {
             tag = getWriteTagFromIntent(intent);
-            if(tag != null) tag.writeJSON(json);
-        } catch (CuonaException | IOException e) {
-            e.printStackTrace();
-            throw new CuonaException(e);
-        }
-    }
-
-    // 書き込みロック
-    public void protect(Intent intent, byte[] newPassword, byte[] oldPassword) throws CuonaException {
-        CuonaWritableTag tag;
-        try {
-            tag = getWriteTagFromIntent(intent);
-            if(tag != null) tag.protect(newPassword, oldPassword);
-        } catch (CuonaException | IOException e) {
-            e.printStackTrace();
-            throw new CuonaException(e);
-        }
-    }
-
-    // 書き込みアンロック
-    public void unprotect(Intent intent, byte[] password) throws CuonaException {
-        CuonaWritableTag tag;
-        try {
-            tag = getWriteTagFromIntent(intent);
-            if(tag != null) tag.unprotect(password);
+            if(tag != null) tag.writeJSON(json, password);
         } catch (CuonaException | IOException e) {
             e.printStackTrace();
             throw new CuonaException(e);
@@ -261,14 +237,14 @@ public class Cuona {
 
                     return new CuonaWritableT2(mul);
                 }
-                IsoDep isoDep = IsoDep.get(tag);
-                if (isoDep != null) {
-
-                    // ログの送信
-                    sendWriteLog(tag);
-
-                    return new CuonaWritableT4(isoDep);
-                }
+//                IsoDep isoDep = IsoDep.get(tag);
+//                if (isoDep != null) {
+//
+//                    // ログの送信
+//                    sendWriteLog(tag);
+//
+//                    return new CuonaWritableT4(isoDep);
+//                }
             }
         }
         return null;

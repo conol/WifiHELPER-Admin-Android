@@ -51,7 +51,7 @@ public class GetAvailableDevices extends AsyncTask<Void, Void, List<String>> {
 
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject jRec = jsonArray.getJSONObject(i);
-                    String deviceId = jRec.getString("device_id").replace(" ", "").toLowerCase();
+                    String deviceId = jRec.getString("device_id");
                     deviceIdList.add(deviceId);
                 }
 

@@ -27,6 +27,8 @@ public class CuonaWritableT4 extends CuonaWritableTag {
     private static final int CUONA_DEVICEID_OFFSET = 5;
 
     private static final int T4_PASSWORD_LENGTH = 128 / 8; // 16
+    private static final int T4_CC_LENGTH = 15;
+    private static final int T4_CC_WRITE_ACCESS_OFFSET = 0x0e;
 
     private IsoDep dep;
 
@@ -102,9 +104,9 @@ public class CuonaWritableT4 extends CuonaWritableTag {
     }
 
     @Override
-    public void writeJSON(String json) throws IOException {
+    public void writeJSON(String json, String password) throws IOException {
         Log.i("nfc", "T4 detected");
-        //selectNDEFTagApp();
+
         Ndef ndef = Ndef.get(dep.getTag());
         if (ndef == null) {
             throw new IOException("Cannot get Ndef");
@@ -140,17 +142,68 @@ public class CuonaWritableT4 extends CuonaWritableTag {
         }
     }
 
-    @Override
-    public void protect(byte[] newPassword, byte[] oldPassword) throws IOException {
-        // TODO:
-    }
-
-    @Override
-    public void unprotect(byte[] password) throws IOException {
-        // TODO:
-    }
-
     /*
+    @Override
+    public void protect(String newPassword, String oldPassword) throws IOException {
+        byte[] newpw = new CUONAPassword(newPassword).getPasswordArray(T4_PASSWORD_LENGTH);
+        byte[] oldpw = new CUONAPassword(oldPassword).getPasswordArray(T4_PASSWORD_LENGTH);
+
+        if (!dep.isConnected()) {
+            dep.connect();
+        }
+        try {
+            sendAPDU(NDEFTagAppSelectAPDU);
+            sendAPDU(CCSelectAPDU);
+            byte[] CC = readBinary(0, T4_CC_LENGTH);
+            if (CC[T4_CC_WRITE_ACCESS_OFFSET] != 0) {
+                Log.d("nfc", "NFC Tag is write protected");
+                throw new IOException("NFC Tag is write protected");
+            }
+
+            Log.d("nfc", "NFC Tag is not write protected");
+
+            sendAPDU(NDEFFileSelectAPDU);
+            sendWritePasswordVerify(newpw);
+            sendAPDU(EnablePermanentStateAPDU);
+
+        } finally {
+            dep.close();
+        }
+    }
+
+    @Override
+    public void unprotect(String password) throws IOException {
+        Log.d("nfc", "Unlock not supported for Type 4 tag");
+
+        byte[] pw = new CUONAPassword(password).getPasswordArray(T4_PASSWORD_LENGTH);
+
+        if (!dep.isConnected()) {
+            dep.connect();
+        }
+        try {
+            sendAPDU(NDEFTagAppSelectAPDU);
+            sendAPDU(CCSelectAPDU);
+            byte[] CC = readBinary(0, T4_CC_LENGTH);
+            if (CC[T4_CC_WRITE_ACCESS_OFFSET] != 0) {
+                Log.d("nfc", "NFC Tag is write protected");
+
+                sendAPDU(NDEFFileSelectAPDU);
+                sendWritePasswordVerify(pw);
+                // !!! THIS NOT WORKS !!!
+                // DisablePermanentStateAPDU must be issued from I2C bus
+                sendAPDU(DisablePermanentStateAPDU);
+                //sendAPDU(DisableWriteVerificationAPDU);
+
+            } else {
+                Log.d("nfc", "NFC Tag is not write protected");
+                // Nothing to do
+            }
+        } finally {
+            dep.close();
+        }
+    }
+    */
+
     private final static byte[] NDEFTagAppSelectAPDU = new byte[] {
             (byte) 0x00, // CLA
             (byte) 0xA4, // INS
@@ -160,18 +213,105 @@ public class CuonaWritableT4 extends CuonaWritableTag {
             (byte) 0x85, (byte) 0x01, (byte) 0x01, // data
     };
 
-    private void selectNDEFTagApp() throws IOException {
+    private final static byte[] CCSelectAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0xA4, // INS
+            (byte) 0x00, (byte) 0x0C, // P1 P2
+            (byte) 0x02, // Lc
+            (byte) 0xE1, (byte) 0x03, // data
+    };
 
-        if (!dep.isConnected()) {
-            dep.connect();
-        }
+    private final static byte[] SystemFileSelectAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0xA4, // INS
+            (byte) 0x00, (byte) 0x0C, // P1 P2
+            (byte) 0x02, // Lc
+            (byte) 0xE1, (byte) 0x01, // data
+    };
 
-        HexUtils.logd("T4 send", NDEFTagAppSelectAPDU);
-        byte[] ans = dep.transceive(NDEFTagAppSelectAPDU);
+    private final static byte[] NDEFFileSelectAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0xA4, // INS
+            (byte) 0x00, (byte) 0x0C, // P1 P2
+            (byte) 0x02, // Lc
+            (byte) 0x00, (byte) 0x01, // data
+    };
+
+    private final static byte[] EnableWriteVerificationAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0x28, // INS
+            (byte) 0x00, (byte) 0x02, // P1 P2
+    };
+
+    private final static byte[] DisableWriteVerificationAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0x26, // INS
+            (byte) 0x00, (byte) 0x02, // P1 P2
+    };
+
+    private final static byte[] EnablePermanentStateAPDU = new byte[] {
+            (byte) 0xa2, // CLA
+            (byte) 0x28, // INS
+            (byte) 0x00, (byte) 0x02, // P1 P2
+    };
+
+    private final static byte[] DisablePermanentStateAPDU = new byte[] {
+            (byte) 0xa2, // CLA
+            (byte) 0x26, // INS
+            (byte) 0x00, (byte) 0x02, // P1 P2
+    };
+
+    private void sendAPDU(byte[] apdu) throws IOException {
+        HexUtils.logd("T4 send", apdu);
+        byte[] ans = dep.transceive(apdu);
         HexUtils.logd("T4 recv", ans);
-
+        if (ans[0] != (byte) 0x90) {
+            throw new IOException("NFC error");
+        }
     }
-    */
 
+    private final static byte[] ReadBinaryAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0xB0, // INS
+            (byte) 0x00, (byte) 0x00, // P1 P2 (Offset, placeholder)
+            (byte) 0x00, // Le (Length, placeholder)
+    };
+
+    private byte[] readBinary(int offset, int length) throws IOException {
+        byte[] apdu = Arrays.copyOf(ReadBinaryAPDU, ReadBinaryAPDU.length);
+        apdu[2] = (byte) (offset >> 8);
+        apdu[3] = (byte) offset;
+        apdu[4] = (byte) length;
+        HexUtils.logd("T4 send", apdu);
+        byte[] ans = dep.transceive(apdu);
+        HexUtils.logd("T4 recv", ans);
+        if (ans[length] != (byte) 0x90) {
+            throw new IOException("NFC error");
+        }
+        return Arrays.copyOf(ans, length);
+    }
+
+    private final static byte[] WritePasswordVerifyAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0x20, // INS
+            (byte) 0x00, (byte) 0x02, // P1 P2
+            (byte) 0x00, // Lc (Length, placeholder)
+            // Password follows
+    };
+
+    private void sendWritePasswordVerify(byte[] password) throws IOException {
+        byte[] apdu = Arrays.copyOf(WritePasswordVerifyAPDU,
+                WritePasswordVerifyAPDU.length + password.length);
+        apdu[WritePasswordVerifyAPDU.length - 1] = (byte) password.length;
+        for (int i = 0; i < password.length; i++) {
+            apdu[WritePasswordVerifyAPDU.length + i] = password[i];
+        }
+        HexUtils.logd("T4 send", apdu);
+        byte[] ans = dep.transceive(apdu);
+        HexUtils.logd("T4 recv", ans);
+        if (ans[0] != (byte) 0x90) {
+            throw new IOException("NFC error");
+        }
+    }
 }
 

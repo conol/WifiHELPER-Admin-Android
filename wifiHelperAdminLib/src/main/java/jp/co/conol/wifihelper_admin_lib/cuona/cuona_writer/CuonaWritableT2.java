@@ -30,6 +30,29 @@ public class CuonaWritableT2 extends CuonaWritableTag {
         this.mul = mul;
     }
 
+    private byte[] createNdefTLV(NdefMessage msg) {
+        byte[] msgData = msg.toByteArray();
+        byte[] tlv;
+        int len = msgData.length;
+        int p;
+        if (msgData.length > 254) {
+            tlv = new byte[len + 4 + 1];
+            tlv[0] = 3;
+            tlv[1] = (byte) 0xff;
+            tlv[2] = (byte) (len >> 8);
+            tlv[3] = (byte) len;
+            p = 4;
+        } else {
+            tlv = new byte[len + 2 + 1];
+            tlv[0] = 3;
+            tlv[1] = (byte) len;
+            p = 2;
+        }
+        System.arraycopy(msgData, 0, tlv, p, len);
+        tlv[p + len] = (byte) 0xfe; // end mark
+        return tlv;
+    }
+
     private void t2prepare() throws IOException {
         Log.i("nfc", "T2 detected");
         if (!mul.isConnected()) {
@@ -40,7 +63,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
         HexUtils.logd("readPages(0)", page0);
         deviceId = Arrays.copyOf(page0, T2_DEVICE_ID_LENGTH);
 
-        byte[] version = mul.transceive(new byte[] { T2_CMD_GET_VERSION  });
+        byte[] version = mul.transceive(new byte[]{T2_CMD_GET_VERSION});
         HexUtils.logd("T2 Version", version);
 
         if (version[1] != 4 || version[2] != 4) {
@@ -65,7 +88,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
             configPage = 0xe3;
         }
 
-        if  (configPage != 0) {
+        if (configPage != 0) {
             configPageData = mul.readPages(configPage);
             HexUtils.logd("config", configPageData);
 
@@ -78,6 +101,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
                 isProtected = false;
             }
         }
+
     }
 
     private void t2auth(byte[] password) throws IOException {
@@ -91,89 +115,54 @@ public class CuonaWritableT2 extends CuonaWritableTag {
         HexUtils.logd("PWD_AUTH: pack", pack);
     }
 
+    @Override
+    public void writeJSON(String json, String password) throws IOException {
+        byte[] pw = password == null ? null
+                : new CUONAPassword(password).getPasswordArray(4);
 
-    public void writeJSON(String json) throws IOException {
         t2prepare();
-        mul.close();
 
-        byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
+        try {
 
-        NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData);
-        NdefMessage msg = new NdefMessage(rec);
-
-        Ndef ndef = Ndef.get(mul.getTag());
-        if (ndef == null) {
-            Log.e("nfc", "Cannot get Ndef");
-            throw new IOException("Cannot get Ndef");
-        }
-
-        if (!ndef.isConnected()) {
-            ndef.connect();
-        }
-
-        if (ndef.isWritable()) {
-
-            try {
-                ndef.writeNdefMessage(msg);
-            } catch (FormatException e) {
-                throw new IOException(e);
+            if (pw != null) {
+                if (!isNXPNTAG) {
+                    throw new IOException("Not NXP NTAG, password protection not supported");
+                }
+                if (isProtected) {
+                    t2auth(pw);
+                }
+                byte[] configPage1 = Arrays.copyOf(configPageData, 4);
+                configPage1[3] = (byte) 0xff; // auth0
+                mul.writePage(configPage, configPage1);
+                Log.i("nfc", "auth0 written, tag is unprotected");
             }
-            Log.i("nfc", "Tag written!");
 
-        } else {
-            Log.e("nfc", "Tag is not writable");
-            throw new IOException("Tag is not writable");
+            byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
+
+            NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData);
+            NdefMessage msg = new NdefMessage(rec);
+            byte[] data = createNdefTLV(msg);
+
+            int page = 4;
+            for (int p = 0; p < data.length; p += 4) {
+                byte[] block = Arrays.copyOfRange(data, p, p + 4);
+                mul.writePage(page, block);
+                page++;
+            }
+            Log.d("nfc", "All pages written");
+
+            if (pw != null) {
+                mul.writePage(configPage + 2, pw);
+                Log.i("nfc", "password written");
+                byte[] configPage1 = Arrays.copyOf(configPageData, 4);
+                configPage1[3] = 0; // auth0
+                mul.writePage(configPage, configPage1);
+                Log.i("nfc", "auth0 written, tag is protected");
+            }
+
+        } finally {
+            mul.close();
         }
 
     }
-
-    @Override
-    public void protect(byte[] newPassword, byte[] oldPassword) throws IOException {
-
-        newPassword = Arrays.copyOf(newPassword, 4);
-        oldPassword = Arrays.copyOf(oldPassword, 4);
-
-        t2prepare();
-
-        if (!isNXPNTAG) {
-            throw new IOException("Not NXP NTAG, password protection not supported");
-        }
-
-        if (isProtected && oldPassword != null) {
-            t2auth(oldPassword);
-        }
-
-        mul.writePage(configPage + 2, newPassword);
-        Log.i("nfc", "password written");
-        configPageData[3] = 0; // auth0
-        byte[] configPage1 = Arrays.copyOf(configPageData, 4);
-        mul.writePage(configPage, configPage1);
-        Log.i("nfc", "auth0 written");
-
-        mul.close();
-    }
-
-    @Override
-    public void unprotect(byte[] password) throws IOException {
-        password = Arrays.copyOf(password, 4);
-
-        t2prepare();
-
-        if (!isNXPNTAG) {
-            throw new IOException("Not NXP NTAG, password protection not supported");
-        }
-
-        if (isProtected && password != null) {
-            t2auth(password);
-        }
-
-        configPageData[3] = (byte) 0xff; // auth0
-        byte[] configPage1 = Arrays.copyOf(configPageData, 4);
-        mul.writePage(configPage, configPage1);
-        Log.i("nfc", "auth0 written");
-
-        mul.close();
-    }
-
-
 }

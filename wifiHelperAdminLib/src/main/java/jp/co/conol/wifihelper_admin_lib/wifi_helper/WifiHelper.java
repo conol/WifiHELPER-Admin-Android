@@ -275,11 +275,8 @@ public class WifiHelper {
         }
     }
 
-    public static void writeWifiSetting(Intent intent, Cuona cuona, Wifi wifi) throws CuonaException {
+    public static void writeWifiSetting(Intent intent, Cuona cuona, Wifi wifi, String password) throws CuonaException {
         try {
-            byte[] pw    = {(byte) 186, (byte) 211, (byte )118, (byte) 131};
-            byte[] newPw = {(byte) 186, (byte) 211, (byte )118, (byte) 131};
-
             String readString = cuona.readJsonNonLog(intent);
 
             // 読み込んだjson
@@ -299,9 +296,7 @@ public class WifiHelper {
             writeJson.put("kind", wifi.getKind());
             if(wifi.getDays() != null) writeJson.put("days", wifi.getDays());
             readJson.put("wifi", writeJson);
-            cuona.writeJson(intent, readJson.toString());
-
-            cuona.protect(intent, newPw, pw);
+            cuona.writeJson(intent, readJson.toString(), password);
 
         } catch (CuonaException | JSONException e) {
             e.printStackTrace();
