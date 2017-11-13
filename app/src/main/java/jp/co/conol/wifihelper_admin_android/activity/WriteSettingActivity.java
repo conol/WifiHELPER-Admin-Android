@@ -212,8 +212,6 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         });
     }
 
-
-
     @Override
     protected void onNewIntent(final Intent intent) {
         // サーバーに登録されているデバイスIDを取得
@@ -243,6 +241,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     }
 
                     try {
+
                         // nfcに書き込み
                         WifiHelper.writeWifiSetting(intent, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate));
 

@@ -26,6 +26,8 @@ public class CuonaWritableT4 extends CuonaWritableTag {
     private static final int CUONA_DEVICEID_LENGTH_OFFSET = 3;
     private static final int CUONA_DEVICEID_OFFSET = 5;
 
+    private static final int T4_PASSWORD_LENGTH = 128 / 8; // 16
+
     private IsoDep dep;
 
     public CuonaWritableT4(IsoDep dep) {
@@ -62,6 +64,11 @@ public class CuonaWritableT4 extends CuonaWritableTag {
         byte[] payload = rec.getPayload();
         if (payload.length < CUONA_DEVICEID_OFFSET) {
             return null;
+        }
+        for (int i = 0; i < CUONA_MAGIC.length; i++) {
+            if (payload[i] != CUONA_MAGIC[i]) {
+                return null;
+            }
         }
         int deviceIdLength = payload[CUONA_DEVICEID_LENGTH_OFFSET] & 0xff;
         if (payload.length < CUONA_DEVICEID_OFFSET + deviceIdLength) {
@@ -132,5 +139,39 @@ public class CuonaWritableT4 extends CuonaWritableTag {
             throw new IOException("Tag is not writable");
         }
     }
+
+    @Override
+    public void protect(byte[] newPassword, byte[] oldPassword) throws IOException {
+        // TODO:
+    }
+
+    @Override
+    public void unprotect(byte[] password) throws IOException {
+        // TODO:
+    }
+
+    /*
+    private final static byte[] NDEFTagAppSelectAPDU = new byte[] {
+            (byte) 0x00, // CLA
+            (byte) 0xA4, // INS
+            (byte) 0x04, (byte) 0x00, // P1 P2
+            (byte) 0x07, // Lc
+            (byte) 0xD2, (byte) 0x76, (byte) 0x00, (byte) 0x00,
+            (byte) 0x85, (byte) 0x01, (byte) 0x01, // data
+    };
+
+    private void selectNDEFTagApp() throws IOException {
+
+        if (!dep.isConnected()) {
+            dep.connect();
+        }
+
+        HexUtils.logd("T4 send", NDEFTagAppSelectAPDU);
+        byte[] ans = dep.transceive(NDEFTagAppSelectAPDU);
+        HexUtils.logd("T4 recv", ans);
+
+    }
+    */
+
 }
 

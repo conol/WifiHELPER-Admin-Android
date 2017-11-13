@@ -128,7 +128,12 @@ public class Cuona {
     }
 
     public void disableForegroundDispatch(Activity activity) {
-        nfcAdapter.disableForegroundDispatch(activity);
+        try {
+            nfcAdapter.disableForegroundDispatch(activity);
+        } catch (IllegalStateException e) {
+            // Already disabled, ignore
+        }
+
     }
 
     public int readType(Intent intent) throws CuonaException {
@@ -197,6 +202,30 @@ public class Cuona {
         try {
             tag = getWriteTagFromIntent(intent);
             if(tag != null) tag.writeJSON(json);
+        } catch (CuonaException | IOException e) {
+            e.printStackTrace();
+            throw new CuonaException(e);
+        }
+    }
+
+    // 書き込みロック
+    public void protect(Intent intent, byte[] newPassword, byte[] oldPassword) throws CuonaException {
+        CuonaWritableTag tag;
+        try {
+            tag = getWriteTagFromIntent(intent);
+            if(tag != null) tag.protect(newPassword, oldPassword);
+        } catch (CuonaException | IOException e) {
+            e.printStackTrace();
+            throw new CuonaException(e);
+        }
+    }
+
+    // 書き込みアンロック
+    public void unprotect(Intent intent, byte[] password) throws CuonaException {
+        CuonaWritableTag tag;
+        try {
+            tag = getWriteTagFromIntent(intent);
+            if(tag != null) tag.unprotect(password);
         } catch (CuonaException | IOException e) {
             e.printStackTrace();
             throw new CuonaException(e);
