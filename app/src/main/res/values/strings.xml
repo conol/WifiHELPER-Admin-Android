@@ -4,9 +4,15 @@
     <string name="app_name_sub">for ADMIN</string>
     <string name="app_name">Wi-Fi HELPER for ADMIN</string>
     <string name="app_version">アプリバージョン：v1.0.0</string>
-    <string name="top_message">書き込むCUONAもしくは、\nNFCチップにタッチしてください</string>
+    <string name="top_message">設定を変更するCUONAにタッチしてください</string>
     <string name="start_reading">NFCリーダーを起動する</string>
     <string name="connecting_wifi">利用可能なWi-Fiへ接続を行っています</string>
+
+    <!-- ログイン画面 -->
+    <string name="sign_in_message">契約時のアカウントでログインしてください</string>
+    <string name="sign_in_mail">メールアドレス</string>
+    <string name="sign_in_password">パスワード</string>
+    <string name="sign_in_button">ログインする</string>
 
     <!-- nfc -->
     <string name="nfc_scan_title">スキャンの準備ができました</string>
@@ -20,7 +26,7 @@
 
     <!-- 書き込み設定ページ -->
     <string name="detect_corona">CUONAを検出しました！</string>
-    <string name="detect_corona_message">書き込む情報を入力して、\n再度CUONAにタップしてください</string>
+    <string name="detect_corona_message">設定情報を入力して、\n再度CUONAにタップしてください</string>
     <string name="write_ssid">SSIDを入力してください</string>
     <string name="write_pass">パスワードを入力してください</string>
     <string name="write_kind_wep">WEP</string>

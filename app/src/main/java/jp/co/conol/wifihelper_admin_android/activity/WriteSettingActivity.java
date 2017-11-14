@@ -71,7 +71,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mWepTextView = (TextView) findViewById(R.id.wepTextView);
         mWpaTextView = (TextView) findViewById(R.id.wpaTextView);
         mNoneTextView = (TextView) findViewById(R.id.noneTextView);
-        mStartScanButton = (Button) findViewById(R.id.startScanButton);
+        mStartScanButton = (Button) findViewById(R.id.signInButtonConstrainLayout);
         mExpireDateConstraintLayout = (ConstraintLayout) findViewById(R.id.expireDateConstraintLayout);
         mExpireDateTextView = (TextView) findViewById(R.id.expireDateTextView);
         mCoronaImageView = (ImageView) findViewById(R.id.coronaImageView);

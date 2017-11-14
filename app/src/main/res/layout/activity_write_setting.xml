@@ -295,7 +295,7 @@
             </android.support.constraint.ConstraintLayout>
 
             <Button
-                android:id="@+id/startScanButton"
+                android:id="@+id/signInButtonConstrainLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"

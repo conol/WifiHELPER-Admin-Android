@@ -247,11 +247,6 @@ public class MainActivity extends AppCompatActivity {
         closeScanPage();
     }
 
-    public void onAppAboutTextViewTapped(View view) {
-        Intent intent = new Intent(this, AboutAppActivity.class);
-        startActivity(intent);
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK) {
