@@ -7,6 +7,7 @@ package jp.co.conol.wifihelper_admin_lib.DeviceManager.model;
 public class Owner {
 
     private String app_token;
+    private String device_password = "0 0 0 0";
     private int id;
     private String name;
     private String name_kana;
@@ -30,6 +31,10 @@ public class Owner {
 
     public String getAppToken() {
         return app_token;
+    }
+
+    public String getDevicePassword() {
+        return device_password;
     }
 
     public int getId() {

@@ -12,6 +12,8 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import jp.co.conol.wifihelper_admin_lib.DeviceManager.model.Owner;
 import jp.co.conol.wifihelper_admin_lib.Util;
 import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
 import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
@@ -275,9 +278,13 @@ public class WifiHelper {
         }
     }
 
-    public static void writeWifiSetting(Intent intent, Cuona cuona, Wifi wifi, String password) throws CuonaException {
+    public static void writeWifiSetting(Intent intent, Context context, Cuona cuona, Wifi wifi) throws CuonaException {
         try {
             String readString = cuona.readJsonNonLog(intent);
+
+            // 本体に保存されているオーナー情報を取得
+            Gson gson = new Gson();
+            Owner owner = gson.fromJson(Util.SharedPref.get(context, "owner"), Owner.class);
 
             // 読み込んだjson
             JSONObject readJson = new JSONObject("{}");
@@ -296,7 +303,7 @@ public class WifiHelper {
             writeJson.put("kind", wifi.getKind());
             if(wifi.getDays() != null) writeJson.put("days", wifi.getDays());
             readJson.put("wifi", writeJson);
-            cuona.writeJson(intent, readJson.toString(), password);
+            cuona.writeJson(intent, readJson.toString(), owner.getDevicePassword());
 
         } catch (CuonaException | JSONException e) {
             e.printStackTrace();

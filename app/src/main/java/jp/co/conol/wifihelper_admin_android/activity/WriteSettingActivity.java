@@ -32,6 +32,8 @@ import java.util.List;
 
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
+import jp.co.conol.wifihelper_admin_lib.DeviceManager.DeviceManager;
+import jp.co.conol.wifihelper_admin_lib.DeviceManager.model.Device;
 import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
 import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
@@ -214,20 +216,31 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     @Override
     protected void onNewIntent(final Intent intent) {
+
         // サーバーに登録されているデバイスIDを取得
         final Handler handler = new Handler();
         if (MyUtil.Network.isConnected(this) || WifiHelper.isEnable(WriteSettingActivity.this)) {
-            new GetAvailableDevices(new GetAvailableDevices.AsyncCallback() {
+            new DeviceManager(new DeviceManager.AsyncCallback() {
                 @Override
-                public void onSuccess(List<String> deviceIdList) {
+                public void onSuccess(Object object) {
+                    List<Device> deviceList = (List<Device>) object;
 
                     // 接続成功してもデバイスID一覧が無ければエラー
-                    if(deviceIdList == null || deviceIdList.size() == 0) {
-                        showAlertDialog();
+                    if(deviceList == null || deviceList.size() == 0) {
+                        handler.post(new Runnable() {
+                            public void run() {
+                                new AlertDialog.Builder(WriteSettingActivity.this)
+                                        .setMessage(getString(R.string.error_not_exist_devise))
+                                        .setPositiveButton(getString(R.string.ok), null)
+                                        .show();
+                            }
+                        });
                         return;
                     } else {
                         // デバイスIDのリストを作成
-                        mDeviceIds.addAll(deviceIdList);
+                        for (Device device : deviceList) {
+                            mDeviceIds.add(device.getDeviceId());
+                        }
                     }
 
                     // 入力されている設定の取得
@@ -240,29 +253,54 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         expireDate = null;
                     }
 
+                    // nfc読み込み処理実行（デバイスIDを取得）
+                    String deviceId;
                     try {
-
-                        String password = "0000";
-
-                        // nfcに書き込み
-                        WifiHelper.writeWifiSetting(intent, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate), password);
-
-                        Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
-                        writeDoneIntent.putExtra("ssid", ssid);
-                        writeDoneIntent.putExtra("pass", pass);
-                        writeDoneIntent.putExtra("wifiKind", mWifiKind);
-                        writeDoneIntent.putExtra("expireDate", expireDate);
-                        writeDoneIntent.putExtra("deviceType", mDeviceType);
-                        startActivity(writeDoneIntent);
-
-                        isScanning = false;
-                        closeScanPage();
+                        deviceId = mCuona.readDeviceId(intent);
                     } catch (CuonaException e) {
-                        e.printStackTrace();
+                        Log.d("CuonaReader", e.toString());
                         new AlertDialog.Builder(WriteSettingActivity.this)
-                                .setMessage(getString(R.string.error_not_owners))
+                                .setMessage(getString(R.string.error_not_exist_in_devise_ids))
                                 .setPositiveButton(getString(R.string.ok), null)
                                 .show();
+                        return;
+                    }
+
+                    // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
+                    if(mDeviceIds != null && deviceId != null) {
+
+                        if (!mDeviceIds.contains(deviceId)) {
+                            new AlertDialog.Builder(WriteSettingActivity.this)
+                                    .setMessage(getString(R.string.error_not_owners))
+                                    .setPositiveButton(getString(R.string.ok), null)
+                                    .show();
+                        }
+                        // 含まれていれば処理を進める
+                        else {
+
+                            try {
+
+                                // nfcに書き込み
+                                WifiHelper.writeWifiSetting(intent, WriteSettingActivity.this, mCuona, new Wifi(ssid, pass, mWifiKind, expireDate));
+
+                                Intent writeDoneIntent = new Intent(WriteSettingActivity.this, WriteDoneActivity.class);
+                                writeDoneIntent.putExtra("ssid", ssid);
+                                writeDoneIntent.putExtra("pass", pass);
+                                writeDoneIntent.putExtra("wifiKind", mWifiKind);
+                                writeDoneIntent.putExtra("expireDate", expireDate);
+                                writeDoneIntent.putExtra("deviceType", mDeviceType);
+                                startActivity(writeDoneIntent);
+
+                                isScanning = false;
+                                closeScanPage();
+                            } catch (CuonaException e) {
+                                e.printStackTrace();
+                                new AlertDialog.Builder(WriteSettingActivity.this)
+                                        .setMessage(getString(R.string.error_not_owners))
+                                        .setPositiveButton(getString(R.string.ok), null)
+                                        .show();
+                            }
+                        }
                     }
                 }
 
@@ -282,7 +320,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         }
                     });
                 }
-            }).execute();
+            }).setContext(WriteSettingActivity.this).execute(DeviceManager.Task.GetDevices);
         }
         // ネットに未接続の場合はエラー
         else {

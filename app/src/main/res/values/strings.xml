@@ -58,6 +58,15 @@
     <string name="error_read_service_failed">このNFCではWi-Fiサービスがご利用できません。</string>
     <string name="error_not_exist_in_devise_ids">利用されたNFCは本アプリに対応していません。</string>
     <string name="error_not_owners">利用されたNFCは契約したデバイスと異なります。</string>
+    <string name="error_not_exist_devise">サービスに紐付けされているデバイスが見つかりません</string>
+
+    <!-- バリデーション -->
+    <string name="validation_not_correct">パスワードまたはメールアドレスに誤りがあります</string>
+    <string name="validation_email_is_blank">メールアドレスを入力してください</string>
+    <string name="validation_email_too_long">メールアドレスは50文字以下で入力してください</string>
+    <string name="validation_password_is_blank">パスワードを入力してください</string>
+    <string name="validation_password_is_too_short">パスワードは６文字以上で入力してください</string>
+    <string name="validation_password_too_long">パスワードは50文字以下で入力してください</string>
 
     <!-- 全体 -->
     <string name="ok">OK</string>

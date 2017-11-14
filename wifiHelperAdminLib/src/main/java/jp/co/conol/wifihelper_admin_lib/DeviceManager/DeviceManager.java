@@ -1,5 +1,6 @@
 package jp.co.conol.wifihelper_admin_lib.DeviceManager;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -24,6 +25,7 @@ import jp.co.conol.wifihelper_admin_lib.Util;
 public class DeviceManager extends AsyncTask<DeviceManager.Task, Void, Object> {
 
     private AsyncCallback mAsyncCallback = null;
+    private Context mContext = null;
     private String mAppToken = null;
     private String mDeviceId = null;
     private SignIn mSignIn = null;
@@ -44,6 +46,20 @@ public class DeviceManager extends AsyncTask<DeviceManager.Task, Void, Object> {
 
     public DeviceManager(AsyncCallback asyncCallback){
         this.mAsyncCallback = asyncCallback;
+    }
+
+    // オーナー情報が保存されているか否かを返す関数
+    public static boolean hasToken(Context context) {
+        // オーナー情報の取得
+        Gson gson = new Gson();
+        Owner owner = gson.fromJson(Util.SharedPref.get(context, "owner"), Owner.class);
+
+        return owner != null;
+    }
+
+    public DeviceManager setContext(Context context) {
+        mContext = context;
+        return this;
     }
 
     public DeviceManager setAppToken(String appToken) {
@@ -88,6 +104,9 @@ public class DeviceManager extends AsyncTask<DeviceManager.Task, Void, Object> {
                     requestJsonString = gson.toJson(mSignIn);
                     responseJsonString = Util.Http.post(endPoint + apiUrl, null, requestJsonString);
                     type = new TypeToken<Owner>(){}.getType();
+
+                    // オーナー情報を端末に保存
+                    Util.SharedPref.save(mContext, "owner", gson.toJson((Owner)gson.fromJson(responseJsonString, type)));
                     break;
 
                 // オーナー情報取得
@@ -99,8 +118,11 @@ public class DeviceManager extends AsyncTask<DeviceManager.Task, Void, Object> {
 
                 // 利用デバイス一覧取得
                 case GetDevices:
+                    // オーナー情報の取得
+                    Owner owner = gson.fromJson(Util.SharedPref.get(mContext, "owner"), Owner.class);
+
                     apiUrl = "/api/owners/devices.json";
-                    responseJsonString = Util.Http.get(endPoint + apiUrl, mAppToken);
+                    responseJsonString = Util.Http.get(endPoint + apiUrl, owner.getAppToken());
                     type = new TypeToken<ArrayList<Device>>(){}.getType();
                     break;
 
