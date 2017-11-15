@@ -37,7 +37,6 @@ import jp.co.conol.wifihelper_admin_lib.DeviceManager.model.Device;
 import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
 import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
 import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
 import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
 
@@ -116,9 +115,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             mExpireDateTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
         if(mDeviceType == Cuona.TAG_TYPE_CUONA) {
-            mCoronaImageView.setImageResource(R.drawable.img_corona);
+            mCoronaImageView.setImageResource(R.drawable.img_cuona);
         } else {
-            mCoronaImageView.setImageResource(R.drawable.img_nfc);
+            mCoronaImageView.setImageResource(R.drawable.ic_nfc);
         }
 
         // ssidかpasswordが空欄ならスキャンを開始できないようにする
@@ -320,7 +319,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                         }
                     });
                 }
-            }).setContext(WriteSettingActivity.this).execute(DeviceManager.Task.GetDevices);
+            }).setContext(WriteSettingActivity.this).execute(DeviceManager.Task.GetDevicesForOwner);
         }
         // ネットに未接続の場合はエラー
         else {

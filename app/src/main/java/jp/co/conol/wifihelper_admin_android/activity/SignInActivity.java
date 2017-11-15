@@ -28,12 +28,12 @@ public class SignInActivity extends AppCompatActivity {
         mSignInMailEditText = (EditText) findViewById(R.id.signInMailEditText);
         mSignInPasswordEditText = (EditText) findViewById(R.id.signInPasswordEditText);
 
-//        // オーナー情報が保存されていれば、次のスキャンページへ移動
-//        if(DeviceManager.hasToken(this)) {
-//            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-//            startActivity(intent);
-//            finish();
-//        }
+        // オーナー情報が保存されていれば、次のスキャンページへ移動
+        if(DeviceManager.hasToken(this)) {
+            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
 
     public void onSignInButtonTapped(View view) {
@@ -60,7 +60,6 @@ public class SignInActivity extends AppCompatActivity {
             new DeviceManager(new DeviceManager.AsyncCallback() {
                 @Override
                 public void onSuccess(Object object) {
-                    Owner owner = (Owner) object;
 
                     if(object != null) {
                         // スキャン画面へ移動

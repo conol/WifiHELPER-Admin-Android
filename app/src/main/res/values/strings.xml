@@ -59,6 +59,7 @@
     <string name="error_not_exist_in_devise_ids">利用されたNFCは本アプリに対応していません。</string>
     <string name="error_not_owners">利用されたNFCは契約したデバイスと異なります。</string>
     <string name="error_not_exist_devise">サービスに紐付けされているデバイスが見つかりません</string>
+    <string name="error_incorrect_touch_nfc">NFCが読み取れませんでした。正しくタッチできていないか、本アプリに対応していない可能性があります。</string>
 
     <!-- バリデーション -->
     <string name="validation_not_correct">パスワードまたはメールアドレスに誤りがあります</string>

@@ -79,7 +79,7 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/subLogoTextView"
-                app:srcCompat="@drawable/img_corona" />
+                app:srcCompat="@drawable/img_cuona" />
 
             <TextView
                 android:id="@+id/detectTextView"

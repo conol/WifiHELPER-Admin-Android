@@ -58,9 +58,9 @@ public class WriteDoneActivity extends AppCompatActivity {
             mDaysTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
         if(deviceType == 1) {
-            mCoronaImageView.setImageResource(R.drawable.img_corona);
+            mCoronaImageView.setImageResource(R.drawable.img_cuona);
         } else {
-            mCoronaImageView.setImageResource(R.drawable.img_nfc);
+            mCoronaImageView.setImageResource(R.drawable.ic_nfc);
         }
     }
 

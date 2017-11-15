@@ -115,9 +115,10 @@ public class MainActivity extends AppCompatActivity {
                         } catch (CuonaException e) {
                             Log.d("CuonaReader", e.toString());
                             new AlertDialog.Builder(MainActivity.this)
-                                    .setMessage(getString(R.string.error_not_exist_in_devise_ids))
+                                    .setMessage(getString(R.string.error_incorrect_touch_nfc))
                                     .setPositiveButton(getString(R.string.ok), null)
                                     .show();
+                            cancelScan();
                             return;
                         }
 
@@ -150,9 +151,10 @@ public class MainActivity extends AppCompatActivity {
                                 catch (CuonaException e) {
                                     e.printStackTrace();
                                     new AlertDialog.Builder(MainActivity.this)
-                                            .setMessage(getString(R.string.error_read_service_failed))
+                                            .setMessage(getString(R.string.error_incorrect_touch_nfc))
                                             .setPositiveButton(getString(R.string.ok), null)
                                             .show();
+                                    cancelScan();
                                 }
                             }
                         }
