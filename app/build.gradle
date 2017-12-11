@@ -27,6 +27,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
-    implementation project(':wifiHelperAdminLib-dev_1.0.0')
     compile 'com.google.code.gson:gson:2.8.2'
+    implementation project(':wifiHelperAdminLib-debug_1.0.1')
 }

@@ -1,1 +1,1 @@
-include ':app', ':wifiHelperAdminLib-dev_1.0.0'
+include ':app', ':wifiHelperAdminLib-debug_1.0.1'
