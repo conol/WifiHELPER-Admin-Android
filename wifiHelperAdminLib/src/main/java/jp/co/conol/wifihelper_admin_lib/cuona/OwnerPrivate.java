@@ -1,10 +1,15 @@
-package jp.co.conol.wifihelper_admin_lib.DeviceManager.model;
+package jp.co.conol.wifihelper_admin_lib.cuona;
+
+import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.Service;
 
 /**
- * Created by m_ito on 2017/11/10.
+ * Created by m_ito on 2017/12/17.
  */
 
-public class Owner {
+// サインイン時に取得するオーナー情報（保存用）
+// 書き込みパスワードは使用者に公開したくないため、こちらに含めて使用者には後悔しない
+// package-private
+class OwnerPrivate {
 
     private String app_token;
     private String device_password = "0 0 0 0";

@@ -21,9 +21,14 @@ class CuonaNDEF {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    static NdefRecord createRecord(byte[] deviceId, byte[] payload)
+    static NdefRecord createRecord(byte[] deviceId, byte[] payload, byte[] cuonaKey)
             throws IOException {
 
+        byte[] all = encrypt(deviceId, payload, cuonaKey);
+        return NdefRecord.createExternal(CUONA_TAG_DOMAIN, CUONA_TAG_TYPE, all);
+    }
+
+    static byte[] encrypt(byte[] deviceId, byte[] payload, byte[] cuonaKey) throws IOException {
         byte[] iv;
         byte[] encryptedPayload;
 
@@ -31,11 +36,11 @@ class CuonaNDEF {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(deviceId);
             byte[] key =  md.digest();
-            if (key.length != Keys.cuonaKey32B.length) {
+            if (key.length != cuonaKey.length) {
                 throw new IllegalStateException("SHA-256 returns illegal length");
             }
             for (int i = 0; i < key.length; i++) {
-                key[i] ^= Keys.cuonaKey32B[i];
+                key[i] ^= cuonaKey[i];
             }
 
             Cipher aesEncryptor = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -57,8 +62,7 @@ class CuonaNDEF {
         os.write(iv);
         os.write(encryptedPayload);
 
-        byte[] all = os.toByteArray();
-        return NdefRecord.createExternal(CUONA_TAG_DOMAIN, CUONA_TAG_TYPE, all);
+        return os.toByteArray();
     }
 
 }

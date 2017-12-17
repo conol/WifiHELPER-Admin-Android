@@ -7,36 +7,35 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import jp.co.conol.wifihelper_admin_android.R;
+import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
+import jp.co.conol.wifihelper_admin_lib.cuona.WifiHelper;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
 
 public class WriteDoneActivity extends AppCompatActivity {
 
-    private TextView mSsidTextView;
-    private TextView mPassTextView;
-    private TextView mTypeTextView;
-    private TextView mDaysTextView;
-    private ImageView mCoronaImageView;
+    @BindView(R.id.ssidTextView) TextView mSsidTextView;
+    @BindView(R.id.passTextView) TextView mPassTextView;
+    @BindView(R.id.typeTextView) TextView mTypeTextView;
+    @BindView(R.id.daysTextView) TextView mDaysTextView;
+    @BindView(R.id.coronaImageView) ImageView mCoronaImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write_done);
-
-        mSsidTextView = (TextView) findViewById(R.id.ssidTextView);
-        mPassTextView = (TextView) findViewById(R.id.passTextView);
-        mTypeTextView = (TextView) findViewById(R.id.typeTextView);
-        mDaysTextView = (TextView) findViewById(R.id.daysTextView);
-        mCoronaImageView = (ImageView) findViewById(R.id.coronaImageView);
+        ButterKnife.bind(this);
 
         // 設定の取得
         Intent intent = getIntent();
         final String ssid = intent.getStringExtra("ssid");
         final String pass = intent.getStringExtra("pass");
-        final int wifiKind = intent.getIntExtra("wifiKind", 1);
+        final int wifiKind = intent.getIntExtra("wifiKind", WifiHelper.WPA_WPA2PSK);
         final int expireDate = intent.getIntExtra("expireDate", 0);
-        final int deviceType = intent.getIntExtra("deviceType", 2);
+        final int deviceType = intent.getIntExtra("deviceType", Cuona.TAG_TYPE_UNKNOWN);
 
         // 設定の表示
         mSsidTextView.setText(ssid);
@@ -57,10 +56,10 @@ public class WriteDoneActivity extends AppCompatActivity {
         } else {
             mDaysTextView.setText(getString(R.string.write_expire_date_unlimited));
         }
-        if(deviceType == 1) {
-            mCoronaImageView.setImageResource(R.drawable.img_cuona);
-        } else {
+        if(deviceType == Cuona.TAG_TYPE_SEAL) {
             mCoronaImageView.setImageResource(R.drawable.ic_nfc);
+        } else {
+            mCoronaImageView.setImageResource(R.drawable.img_cuona);
         }
     }
 

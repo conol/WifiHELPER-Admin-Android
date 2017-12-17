@@ -12,10 +12,6 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_CUONA;
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_SEAL;
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_UNKNOWN;
-
 public class CuonaReaderSecureTag extends CuonaReaderTag {
 
     private static final String CUONA_TAG_DOMAIN = "conol.jp";
@@ -23,6 +19,9 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
     private static final byte CUONA_MAGIC_1 = 0x63;
     private static final byte CUONA_MAGIC_2 = 0x6f;
     private static final byte CUONA_MAGIC_3 = 0x04;
+    private final int TAG_TYPE_UNKNOWN = 0;
+    private final int TAG_TYPE_CUONA = 1;
+    private final int TAG_TYPE_SEAL = 2;
 
     private final byte[] deviceId;
     private final byte[] jsonData;
@@ -58,17 +57,17 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
         return 256;
     }
 
-    private static byte[] decrypt(byte[] deviceId, byte[] iv, byte[] encryptedcontent)
+    private static byte[] decrypt(byte[] deviceId, byte[] iv, byte[] encryptedcontent, byte[] cuonaKey)
             throws GeneralSecurityException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(deviceId);
         byte[] key =  md.digest();
-        if (key.length != Keys.cuonaKey32B.length) {
+        if (key.length != cuonaKey.length) {
             throw new IllegalStateException("SHA-256 returns illegal length");
         }
         for (int i = 0; i < key.length; i++) {
-            key[i] ^= Keys.cuonaKey32B[i];
+            key[i] ^= cuonaKey[i];
         }
 
         Cipher decryptor = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -78,7 +77,7 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
         return decryptor.doFinal(encryptedcontent);
     }
 
-    public static CuonaReaderSecureTag get(NdefRecord ndef) {
+    public static CuonaReaderSecureTag get(NdefRecord ndef, byte[] cuonaKey) {
         if (ndef.getTnf() != NdefRecord.TNF_EXTERNAL_TYPE) {
             return null;
         }
@@ -122,7 +121,7 @@ public class CuonaReaderSecureTag extends CuonaReaderTag {
 
         byte[] content;
         try {
-            content = decrypt(deviceId, iv, encryptedcontent);
+            content = decrypt(deviceId, iv, encryptedcontent, cuonaKey);
         } catch (GeneralSecurityException e) {
             return null;
         }

@@ -18,7 +18,7 @@ public class AboutAppActivity extends AppCompatActivity {
 
     public void onAboutAppContactButtonClicked(View view) {
         Uri uri = Uri.parse("https://conol.co.jp/contact/form");
-        Intent intent = new Intent(Intent.ACTION_VIEW,uri);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
     }
 }

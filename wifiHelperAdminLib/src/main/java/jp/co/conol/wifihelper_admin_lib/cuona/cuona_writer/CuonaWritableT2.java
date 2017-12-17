@@ -1,10 +1,8 @@
 package jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer;
 
-import android.nfc.FormatException;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.tech.MifareUltralight;
-import android.nfc.tech.Ndef;
 import android.util.Log;
 
 import java.io.IOException;
@@ -116,13 +114,13 @@ public class CuonaWritableT2 extends CuonaWritableTag {
     }
 
     @Override
-    public void writeJSON(String json, String password) throws IOException {
+    public void writeJSON(String json, String password, byte[] cuonaKey) {
         byte[] pw = password == null ? null
                 : new CUONAPassword(password).getPasswordArray(4);
 
-        t2prepare();
-
         try {
+
+            t2prepare();
 
             if (pw != null) {
                 if (!isNXPNTAG) {
@@ -139,7 +137,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
 
             byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
 
-            NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData);
+            NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, cuonaKey);
             NdefMessage msg = new NdefMessage(rec);
             byte[] data = createNdefTLV(msg);
 
@@ -159,9 +157,15 @@ public class CuonaWritableT2 extends CuonaWritableTag {
                 mul.writePage(configPage, configPage1);
                 Log.i("nfc", "auth0 written, tag is protected");
             }
-
+            updateState(State.SUCCESS);
+        } catch (IOException e) {
+            e.printStackTrace();
+            updateState(State.ERROR);
         } finally {
-            mul.close();
+            try {
+                mul.close();
+            } catch (IOException e) {
+            }
         }
 
     }

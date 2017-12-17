@@ -7,12 +7,14 @@
     <string name="top_message">設定を変更するCUONAにタッチしてください</string>
     <string name="start_reading">NFCリーダーを起動する</string>
     <string name="connecting_wifi">利用可能なWi-Fiへ接続を行っています</string>
+    <string name="progress_message">必要なデータを取得中です。</string>
 
     <!-- ログイン画面 -->
     <string name="sign_in_message">契約時のアカウントでログインしてください</string>
     <string name="sign_in_mail">メールアドレス</string>
     <string name="sign_in_password">パスワード</string>
     <string name="sign_in_button">ログインする</string>
+    <string name="sign_in_progress_message">ログイン中です</string>
 
     <!-- nfc -->
     <string name="nfc_scan_title">スキャンの準備ができました</string>
@@ -37,6 +39,7 @@
     <string name="write_expire_date_option">日</string> <!-- Wi-Fi有効期限日数の単位 -->
     <string name="write_expire_date_unlimited">無制限</string> <!-- Wi-Fi有効期限日数の単位 -->
     <string name="edit_text_limit_toast">SSIDとパスワードは50文字以下で設定してください</string> <!-- Wi-Fi有効期限日数の単位 -->
+    <string name="writing_progress_message">書き込み中です。</string>
 
     <!-- 書き込み完了ページ -->
     <string name="done_write">設定が完了しました！</string>
@@ -48,11 +51,14 @@
     <string name="back_to_top_button">最初の画面へ戻る</string>
 
     <!-- ダイアログ -->
-    <string name="nfc_dialog">NFCがオフになっています\nNFCをオンに設定してください</string>
+    <string name="nfc_dialog">本アプリを使用するには、NFCをオンに設定する必要があります。\n端末の設定からNFCをオンにしてください。</string>
+    <string name="bluetooth_dialog">本アプリを使用するには、Bluetoothをオンに設定する必要があります。\nBluetoothをオンにしてもよろしいですか？</string>
     <string name="grant_permission">本アプリを使用するには、位置情報へのアクセスを許可する必要があります。</string>
 
     <!-- エラー -->
+    <string name="error_common">必要なデータの取得に失敗しました。\n再度お試しください。</string>
     <string name="error_network_disable">利用可能なデバイス情報一覧の取得に失敗しました。\nインターネットに接続してください。</string>
+    <string name="error_network_disable_sign_in">ログインに失敗しました。\nインターネットに接続してください。</string>
     <string name="error_fail_get_device_ids">一覧データの取得に失敗しました。\nアプリを再起動して再取得してください。</string>
     <string name="load_devices_failed">デバイス一覧の取得に失敗しました</string>
     <string name="error_read_service_failed">このNFCではWi-Fiサービスがご利用できません。</string>
@@ -60,6 +66,7 @@
     <string name="error_not_owners">利用されたNFCは契約したデバイスと異なります。</string>
     <string name="error_not_exist_devise">サービスに紐付けされているデバイスが見つかりません</string>
     <string name="error_incorrect_touch_nfc">NFCが読み取れませんでした。正しくタッチできていないか、本アプリに対応していない可能性があります。</string>
+    <string name="error_write_setting">書き込みに失敗しました。再度タッチして書き込みを行ってください。</string>
 
     <!-- バリデーション -->
     <string name="validation_not_correct">パスワードまたはメールアドレスに誤りがあります</string>

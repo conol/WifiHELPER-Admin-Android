@@ -8,28 +8,29 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.DeviceManager.DeviceManager;
-import jp.co.conol.wifihelper_admin_lib.DeviceManager.model.Owner;
-import jp.co.conol.wifihelper_admin_lib.DeviceManager.model.SignIn;
-import jp.co.conol.wifihelper_admin_lib.Util;
+import jp.co.conol.wifihelper_admin_android.custom.ProgressDialog;
+import jp.co.conol.wifihelper_admin_android.custom.SimpleAlertDialog;
+import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.Owner;
+import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.SignIn;
+import jp.co.conol.wifihelper_admin_lib.cuona.WifiHelper;
 
 public class SignInActivity extends AppCompatActivity {
 
-    private EditText mSignInMailEditText;
-    private EditText mSignInPasswordEditText;
+    @BindView(R.id.signInMailEditText) EditText mSignInMailEditText;
+    @BindView(R.id.signInPasswordEditText) EditText mSignInPasswordEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
-        mSignInMailEditText = (EditText) findViewById(R.id.signInMailEditText);
-        mSignInPasswordEditText = (EditText) findViewById(R.id.signInPasswordEditText);
+        ButterKnife.bind(this);
 
-        // オーナー情報が保存されていれば、次のスキャンページへ移動
-        if(DeviceManager.hasToken(this)) {
+        // ログイン済みでオーナー情報が保存されていれば、次のページへ移動
+        if(WifiHelper.hasToken(this)) {
             Intent intent = new Intent(SignInActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -43,7 +44,7 @@ public class SignInActivity extends AppCompatActivity {
         String passwordString = mSignInPasswordEditText.getText().toString();
 
         // バリデーション
-        if(Util.Str.isBlank(emailString)) {
+        if(MyUtil.Str.isBlank(emailString)) {
             Toast.makeText(this, getString(R.string.validation_email_is_blank), Toast.LENGTH_SHORT).show();
         } else if(50 < emailString.length()) {
             Toast.makeText(this, getString(R.string.validation_email_too_long), Toast.LENGTH_SHORT).show();
@@ -57,24 +58,48 @@ public class SignInActivity extends AppCompatActivity {
             SignIn signIn = new SignIn(emailString, passwordString);
 
             // ログイン処理
-            new DeviceManager(new DeviceManager.AsyncCallback() {
-                @Override
-                public void onSuccess(Object object) {
+            if (MyUtil.Network.isEnable(this) || WifiHelper.isEnable(SignInActivity.this)) {
 
-                    if(object != null) {
-                        // スキャン画面へ移動
-                        Intent intent = new Intent(SignInActivity.this, MainActivity.class);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(SignInActivity.this, getString(R.string.validation_not_correct), Toast.LENGTH_SHORT).show();
+                // 読み込みダイアログを表示
+                final ProgressDialog progressDialog = new ProgressDialog(SignInActivity.this);
+                progressDialog.setMessage(getString(R.string.sign_in_progress_message));
+                progressDialog.show();
+
+                new WifiHelper(new WifiHelper.AsyncCallback() {
+                    @Override
+                    public void onSuccess(Object object) {
+                        Owner owner = (Owner) object;
+
+                        // 読み込みダイアログを非表示
+                        progressDialog.dismiss();
+
+                        if (owner != null) {
+                            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            new SimpleAlertDialog(SignInActivity.this, getString(R.string.error_common)).show();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Exception e) {
-                    Log.e("onFailure", e.toString());
-                }
-            }).setContext(this).setSingIn(signIn).execute(DeviceManager.Task.SignIn);
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e("onFailure", e.toString());
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                // 読み込みダイアログを非表示
+                                progressDialog.dismiss();
+
+                                new SimpleAlertDialog(SignInActivity.this, getString(R.string.error_common)).show();
+                            }
+                        });
+                    }
+                }).setContext(this).setSingIn(signIn).execute(WifiHelper.Task.SignIn);
+            }
+            // ネットに未接続の場合はエラー
+            else {
+                new SimpleAlertDialog(SignInActivity.this, getString(R.string.error_network_disable_sign_in)).show();
+            }
         }
     }
 

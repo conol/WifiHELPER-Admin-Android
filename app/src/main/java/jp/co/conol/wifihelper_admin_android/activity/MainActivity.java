@@ -1,261 +1,177 @@
 package jp.co.conol.wifihelper_admin_android.activity;
 
-import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.animation.AnimationUtils;
 import android.widget.Toast;
-
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.conol.wifihelper_admin_android.custom.ProgressDialog;
+import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
+import jp.co.conol.wifihelper_admin_lib.cuona.NFCNotAvailableException;
+import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderException;
 import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
-import jp.co.conol.wifihelper_admin_lib.cuona.Cuona;
-import jp.co.conol.wifihelper_admin_lib.cuona.CuonaException;
-import jp.co.conol.wifihelper_admin_lib.cuona.NfcNotAvailableException;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.GetAvailableDevices;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.WifiHelper;
-import jp.co.conol.wifihelper_admin_lib.wifi_helper.model.Wifi;
+import jp.co.conol.wifihelper_admin_android.custom.CuonaUtil;
+import jp.co.conol.wifihelper_admin_android.custom.ScanCuonaDialog;
+import jp.co.conol.wifihelper_admin_android.custom.SimpleAlertDialog;
+import jp.co.conol.wifihelper_admin_lib.cuona.WifiHelper;
+import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.Wifi;
 
 public class MainActivity extends AppCompatActivity {
 
-    Handler mScanDialogAutoCloseHandler = new Handler();
+    private ScanCuonaDialog mScanCuonaDialog;
     private Cuona mCuona;
-    private boolean isScanning = false;
-    List<String> mDeviceIds = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
+    private List<String> mAvailableDeviceIdList = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
-    private ConstraintLayout mScanBackgroundConstraintLayout;
-    private ConstraintLayout mScanDialogConstraintLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mScanBackgroundConstraintLayout = (ConstraintLayout) findViewById(R.id.ScanBackgroundConstraintLayout);
-        mScanDialogConstraintLayout = (ConstraintLayout) findViewById(R.id.scanDialogConstraintLayout);
-
         try {
             mCuona = new Cuona(this);
-        } catch (NfcNotAvailableException e) {
+        } catch (NFCNotAvailableException e) {
             Log.d("Cuona", e.toString());
             finish();
         }
 
+        // CUONAスキャンダイアログのインスタンスを生成
+        mScanCuonaDialog = new ScanCuonaDialog(MainActivity.this, mCuona, 60000, false);
+
         // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        CuonaUtil.checkAccessCoarseLocationPermission(this, PERMISSION_REQUEST_CODE);
 
-            // 許可されていない場合
-            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-                // 許可を求めるダイアログを表示
-                ActivityCompat.requestPermissions(this,
-                        new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION },
-                        PERMISSION_REQUEST_CODE
-                );
-            }
-        }
+        // Bluetoothがオフの場合はダイアログを表示
+        CuonaUtil.checkBluetoothSetting(this, mCuona);
 
         // nfcがオフの場合はダイアログを表示
-        if(!mCuona.isEnable()) {
-            new AlertDialog.Builder(this)
-                    .setMessage(getString(R.string.nfc_dialog))
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
+        CuonaUtil.checkNfcSetting(this, mCuona);
+
+        // サーバーに登録されているデバイスIDを取得
+        if (MyUtil.Network.isEnable(this) || WifiHelper.isEnable(MainActivity.this)) {
+
+            // 読み込みダイアログを表示
+            final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage(getString(R.string.progress_message));
+            progressDialog.show();
+
+            new WifiHelper(new WifiHelper.AsyncCallback() {
+                @Override
+                public void onSuccess(Object object) {
+                    mAvailableDeviceIdList = (List<String>) object;
+
+                    // 読み込みダイアログを非表示
+                    progressDialog.dismiss();
+
+                    // デバイス情報の取得失敗でエラーダイアログを表示
+                    if(mAvailableDeviceIdList == null || mAvailableDeviceIdList.size() == 0) {
+                        new SimpleAlertDialog(MainActivity.this, getString(R.string.error_fail_get_device_ids)).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            // 読み込みダイアログを非表示
+                            progressDialog.dismiss();
+
+                            new SimpleAlertDialog(MainActivity.this, getString(R.string.error_fail_get_device_ids)).show();
                         }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show();
+                    });
+                }
+            }).execute(WifiHelper.Task.GetAvailableDevices);
+        }
+        // ネットに未接続の場合はエラー
+        else {
+            new SimpleAlertDialog(MainActivity.this, getString(R.string.error_network_disable)).show();
         }
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if(mCuona != null) mCuona.enableForegroundDispatch(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mCuona != null) mCuona.disableForegroundDispatch(this);
+    }
+
+    @Override
     protected void onNewIntent(final Intent intent) {
-        if(isScanning) {
+        if(mScanCuonaDialog.isShowing()) {
 
-            // サーバーに登録されているデバイスIDを取得
-            final Handler handler = new Handler();
-            if (MyUtil.Network.isConnected(this) || WifiHelper.isEnable(MainActivity.this)) {
-                new GetAvailableDevices(new GetAvailableDevices.AsyncCallback() {
-                    @Override
-                    public void onSuccess(List<String> deviceIdList) {
-
-                        // 接続成功してもデバイスID一覧が無ければエラー
-                        if(deviceIdList == null || deviceIdList.size() == 0) {
-                            showAlertDialog();
-                            return;
-                        } else {
-                            // デバイスIDのリストを作成
-                            mDeviceIds.addAll(deviceIdList);
-                        }
-
-                        // nfc読み込み処理実行
-                        int deviceType;
-                        String deviceId;
-                        try {
-                            deviceType = mCuona.readType(intent);
-                            deviceId = mCuona.readDeviceId(intent);
-                        } catch (CuonaException e) {
-                            Log.d("CuonaReader", e.toString());
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setMessage(getString(R.string.error_incorrect_touch_nfc))
-                                    .setPositiveButton(getString(R.string.ok), null)
-                                    .show();
-                            cancelScan();
-                            return;
-                        }
-
-                        // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
-                        if(mDeviceIds != null && deviceId != null) {
-
-                            if (!mDeviceIds.contains(deviceId)) {
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setMessage(getString(R.string.error_not_exist_in_devise_ids))
-                                        .setPositiveButton(getString(R.string.ok), null)
-                                        .show();
-                            }
-                            // 含まれていれば処理を進める
-                            else {
-                                try {
-                                    // Wifi設定情報を取得
-                                    final Wifi wifi = WifiHelper.readWifiSetting(intent, mCuona);
-
-                                    Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
-                                    writeSettingIntent.putExtra("ssid", wifi.getSsid());
-                                    writeSettingIntent.putExtra("pass", wifi.getPassword());
-                                    writeSettingIntent.putExtra("wifiKind", wifi.getKind());
-                                    writeSettingIntent.putExtra("expireDate", wifi.getDays());
-                                    writeSettingIntent.putExtra("deviceType", deviceType);
-                                    startActivity(writeSettingIntent);
-                                    isScanning = false;
-                                    closeScanPage();
-                                }
-                                // 読み込んだnfcがWifiHelperに未対応の場合
-                                catch (CuonaException e) {
-                                    e.printStackTrace();
-                                    new AlertDialog.Builder(MainActivity.this)
-                                            .setMessage(getString(R.string.error_incorrect_touch_nfc))
-                                            .setPositiveButton(getString(R.string.ok), null)
-                                            .show();
-                                    cancelScan();
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        showAlertDialog();
-                    }
-
-                    // デバイスID取得失敗でアラートを表示
-                    private void showAlertDialog() {
-                        handler.post(new Runnable() {
-                            public void run() {
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setMessage(getString(R.string.error_fail_get_device_ids))
-                                        .setPositiveButton(getString(R.string.ok), null)
-                                        .show();
-                            }
-                        });
-                    }
-                }).execute();
+            // nfc読み込み処理実行
+            int deviceType;
+            String deviceId;
+            Wifi wifi;
+            try {
+                deviceType = mCuona.readType(intent);
+                deviceId = mCuona.readDeviceId(intent);
+                wifi = WifiHelper.readWifiSetting(intent, mCuona);
+            } catch (CuonaReaderException e) {
+                e.printStackTrace();
+                new SimpleAlertDialog(MainActivity.this, getString(R.string.error_incorrect_touch_nfc)).show();
+                mScanCuonaDialog.dismiss();
+                return;
             }
-            // ネットに未接続の場合はエラー
-            else {
-                new AlertDialog.Builder(this)
-                        .setMessage(getString(R.string.error_network_disable))
-                        .setPositiveButton(getString(R.string.ok), null)
-                        .show();
+
+            // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
+            if(mAvailableDeviceIdList != null && deviceId != null) {
+                if (!mAvailableDeviceIdList.contains(deviceId)) {
+                    new SimpleAlertDialog(MainActivity.this, getString(R.string.error_not_exist_in_devise_ids)).show();
+                }
+                // 利用可能なら次のページへWifi情報を渡して移動
+                else {
+                    Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
+                    writeSettingIntent.putExtra("ssid", wifi.getSsid());
+                    writeSettingIntent.putExtra("pass", wifi.getPassword());
+                    writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+                    writeSettingIntent.putExtra("expireDate", wifi.getDays());
+                    writeSettingIntent.putExtra("deviceType", deviceType);
+                    startActivity(writeSettingIntent);
+                }
+            } else {
+                new SimpleAlertDialog(MainActivity.this, getString(R.string.error_incorrect_touch_nfc)).show();
             }
+
+            mScanCuonaDialog.dismiss();
         }
     }
 
     public void onStartScanButtonClicked(View view) {
-        // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要（wifi接続時）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        // Android6.0以上はACCESS_COARSE_LOCATIONの許可が必要
+        CuonaUtil.checkAccessCoarseLocationPermission(this, PERMISSION_REQUEST_CODE);
 
-            // 許可を求めるダイアログを表示
-            ActivityCompat.requestPermissions(this,
-                    new String[]{ Manifest.permission.ACCESS_COARSE_LOCATION },
-                    PERMISSION_REQUEST_CODE
-            );
+        // Bluetoothがオフの場合はダイアログを表示
+        CuonaUtil.checkBluetoothSetting(this, mCuona);
 
-        }
         // nfcがオフの場合はダイアログを表示
-        else if(!mCuona.isEnable()) {
-            new AlertDialog.Builder(this)
-                    .setMessage(getString(R.string.nfc_dialog))
-                    .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show();
-        } else {
-            if (!isScanning) {
+        CuonaUtil.checkNfcSetting(this, mCuona);
 
-                // nfc読み込み待機
-                mCuona.enableForegroundDispatch(MainActivity.this);
-                isScanning = true;
-                openScanPage();
-
-                // 60秒後に自動で閉じる
-                mScanDialogAutoCloseHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (isScanning) {
-                            cancelScan();
-                        }
-                    }
-                }, 60000);
-            }
+        // BluetoothとNFCが許可されている場合処理を進める
+        if(mCuona.isBluetoothEnabled() && mCuona.isNfcEnabled()) {
+            mScanCuonaDialog.show();
         }
-    }
-
-    public void onCancelScanButtonClicked(View view) {
-        if(isScanning) {
-            cancelScan();
-
-            // 60秒後に閉じる予約をキャンセル
-            mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
-        }
-    }
-
-    private void cancelScan() {
-        // nfc読み込み待機を解除
-        mCuona.disableForegroundDispatch(MainActivity.this);
-        isScanning = false;
-        closeScanPage();
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK) {
-
-            // 読み込み中に戻るタップでスキャン中止
-            if(isScanning) {
-                cancelScan();
+            if(mScanCuonaDialog.isShowing()) {
+                mScanCuonaDialog.dismiss();
             } else {
                 finish();
             }
@@ -272,36 +188,5 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.grant_permission, Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    // 読み込み画面を非表示
-    private void closeScanPage() {
-        mScanDialogConstraintLayout.setVisibility(View.GONE);
-        mScanBackgroundConstraintLayout.setVisibility(View.GONE);
-        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_to_bottom));
-        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_out_slowly));
-        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
-    }
-
-    // 読み込み画面を非表示（背景は残す）
-    private void closeScanDialog() {
-        mScanDialogConstraintLayout.setVisibility(View.GONE);
-        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out_to_bottom));
-        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
-    }
-
-    // 読み込み画面を非表示（背景）
-    private void closeScanBackground() {
-        mScanBackgroundConstraintLayout.setVisibility(View.GONE);
-        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_out_slowly));
-        mScanDialogAutoCloseHandler.removeCallbacksAndMessages(null);
-    }
-
-    // 読み込み画面を表示
-    private void openScanPage() {
-        mScanDialogConstraintLayout.setVisibility(View.VISIBLE);
-        mScanBackgroundConstraintLayout.setVisibility(View.VISIBLE);
-        mScanDialogConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in_from_bottom));
-        mScanBackgroundConstraintLayout.setAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in_slowly));
     }
 }

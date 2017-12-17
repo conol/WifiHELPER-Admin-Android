@@ -16,35 +16,39 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-public class GetLocation implements LocationListener {
+class LocationInfo implements LocationListener {
 
-    Context context;
-    LocationManager mLocationManager;
+    private Context mContext;
+    private LocationManager mLocationManager;
 
-    public GetLocation(Context context) {
-        this.context = context;
+    LocationInfo(Context context) {
+        this.mContext = context;
     }
 
-    public Location getCurrentLocation() {
+    String[] getCurrentLocation() {
         Location location = null;
 
         // LocationManagerを取得
-        mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
+
         // Accuracy
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
+
         // PowerRequirement
-        criteria.setPowerRequirement(Criteria.POWER_LOW);
+        criteria.setPowerRequirement(Criteria.POWER_HIGH);
+
         // ロケーションプロバイダ
         String provider = mLocationManager.getBestProvider(criteria, true);
 
         // 位置情報の通知するための最小時間間隔（ミリ秒）
         final long minTime = 0;
+
         // 位置情報を通知するための最小距離間隔（メートル）
         final long minDistance = 1;
 
         // LocationListenerの登録
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationManager.requestLocationUpdates(provider, minTime, minDistance, this);
             location = mLocationManager.getLastKnownLocation(provider);
             if(location == null){
@@ -54,10 +58,17 @@ public class GetLocation implements LocationListener {
                 mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
         }
-        return location;
+
+        // 現在地の配列 ["緯度", "軽度"]
+        String[] currentLocation = null;
+        if(location != null) {
+            currentLocation = new String[]{String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude())};
+        }
+
+        return currentLocation;
     }
 
-    public void stopGetLocation() {
+    void stopGetLocation() {
         mLocationManager.removeUpdates((LocationListener) this);
     }
 

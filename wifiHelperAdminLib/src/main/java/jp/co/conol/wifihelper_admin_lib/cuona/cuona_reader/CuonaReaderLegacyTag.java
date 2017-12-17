@@ -4,15 +4,14 @@ import android.nfc.NdefRecord;
 
 import java.util.Arrays;
 
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_CUONA;
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_SEAL;
-import static jp.co.conol.wifihelper_admin_lib.cuona.Cuona.TAG_TYPE_UNKNOWN;
-
 public class CuonaReaderLegacyTag extends CuonaReaderTag {
 
     private static final byte[] CNFC_MAGIC = { 0x63, 0x6f, 0x01 };
     private static final int CNFC_DEVICEID_LENGTH = 7;
     private static final String CONOL_EXT_MANU_DATA = "conol.co.jp:cnfc_bt_manu_data";
+    private final int TAG_TYPE_UNKNOWN = 0;
+    private final int TAG_TYPE_CUONA = 1;
+    private final int TAG_TYPE_SEAL = 2;
 
     private final byte[] deviceId;
     private final byte[] jsonData;

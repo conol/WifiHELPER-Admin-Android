@@ -89,7 +89,7 @@
                 android:maxLines="1"
                 android:paddingEnd="16dp"
                 android:paddingStart="16dp"
-                android:text="m.ito@conol.jp"
+                android:text="owner1@example.com"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -109,7 +109,7 @@
                 android:maxLines="1"
                 android:paddingEnd="16dp"
                 android:paddingStart="16dp"
-                android:text="cabot1313"
+                android:text="PASSWORD"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -161,5 +161,15 @@
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>
+
+    <include
+        layout="@layout/layout_progress_dialog"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        tools:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

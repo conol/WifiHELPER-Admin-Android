@@ -1,7 +1,6 @@
-package jp.co.conol.wifihelper_admin_lib.DeviceManager.model;
+package jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model;
 
 
-import jp.co.conol.wifihelper_admin_lib.Util;
 
 /**
  * Created by m_ito on 2017/11/10.
@@ -14,7 +13,7 @@ public class Device {
     private String name;
     private String device_type;
     private String status;
-    private boolean is_development;
+    private boolean is_development = false;
     private Service[] services;
     private String created_at;
     private String updated_at;
@@ -24,7 +23,7 @@ public class Device {
     }
 
     public String getDeviceId() {
-        return Util.Transform.deviceIdForServer(device_id);
+        return deviceIdForServer(device_id);
     }
 
     public String getName() {
@@ -53,5 +52,19 @@ public class Device {
 
     public String getUpdatedAt() {
         return updated_at;
+    }
+
+    // デバイスIDをサーバーに送信可能な形式に変換
+    private String deviceIdForServer(String deviceId) {
+        if(deviceId != null) {
+            String deviceIdTmp = deviceId.replace(" ", "").toLowerCase();
+            StringBuilder deviceIdToSend = new StringBuilder(deviceIdTmp);
+            for (int i = 0; i < (deviceIdTmp.length() - 2) / 2; i++) {
+                deviceIdToSend.insert((deviceIdTmp.length() - 2) - (2 * i), " ");
+            }
+            return deviceIdToSend.toString();
+        } else {
+            return null;
+        }
     }
 }

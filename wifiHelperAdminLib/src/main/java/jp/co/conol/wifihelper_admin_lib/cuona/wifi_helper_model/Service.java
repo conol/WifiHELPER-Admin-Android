@@ -1,4 +1,4 @@
-package jp.co.conol.wifihelper_admin_lib.DeviceManager.model;
+package jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model;
 
 /**
  * Created by m_ito on 2017/11/10.
