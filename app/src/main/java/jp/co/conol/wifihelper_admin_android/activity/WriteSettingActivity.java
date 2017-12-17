@@ -91,10 +91,10 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         mPassEditText.setText(pass);
         mWifiKind = wifiKind;
         switch (wifiKind) {
-            case 1:
+            case WifiHelper.WPA_WPA2PSK:
                 setWpaWifi();
                 break;
-            case 2:
+            case WifiHelper.WEP:
                 setWepWifi();
                 break;
             default:
@@ -282,14 +282,12 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             }
 
             // WifiHelperのサービスに登録されているオーナーのデバイスに、タッチされたNFCが含まれているか否か確認
-            if (mOwnersDeviceIdList != null && deviceId != null) {
-                if (!mOwnersDeviceIdList.contains(deviceId)) {
-                    new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_owners)).show();
-                }
-                // Wifi情報の書き込み
-                else {
-                    WifiHelper.writeWifiSetting(intent, WriteSettingActivity.this, mCuona, new Wifi(mSsid, mPassword, mWifiKind, mExpireDate));
-                }
+            if (!mOwnersDeviceIdList.contains(deviceId)) {
+                new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_owners)).show();
+            }
+            // Wifi情報の書き込み
+            else {
+                WifiHelper.writeWifiSetting(intent, WriteSettingActivity.this, mCuona, new Wifi(mSsid, mPassword, mWifiKind, mExpireDate));
             }
         }
     }
