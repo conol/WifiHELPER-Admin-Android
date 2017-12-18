@@ -306,6 +306,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                 writeDoneIntent.putExtra("expireDate", mExpireDate);
                 writeDoneIntent.putExtra("deviceType", mDeviceType);
                 startActivity(writeDoneIntent);
+
+                // プログレスダイアログを非表示
+                mProgressDialog.dismiss();
             }
 
         } else if (state == CuonaWritableTag.State.ERROR) {
