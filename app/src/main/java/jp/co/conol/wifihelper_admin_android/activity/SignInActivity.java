@@ -68,12 +68,11 @@ public class SignInActivity extends AppCompatActivity {
                 new WifiHelper(new WifiHelper.AsyncCallback() {
                     @Override
                     public void onSuccess(Object object) {
-                        Owner owner = (Owner) object;
 
                         // 読み込みダイアログを非表示
                         progressDialog.dismiss();
 
-                        if (owner != null) {
+                        if (object != null) {
                             Intent intent = new Intent(SignInActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
