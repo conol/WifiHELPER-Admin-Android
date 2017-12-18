@@ -14,7 +14,6 @@ import jp.co.conol.wifihelper_admin_android.MyUtil;
 import jp.co.conol.wifihelper_admin_android.R;
 import jp.co.conol.wifihelper_admin_android.custom.ProgressDialog;
 import jp.co.conol.wifihelper_admin_android.custom.SimpleAlertDialog;
-import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.Owner;
 import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.SignIn;
 import jp.co.conol.wifihelper_admin_lib.cuona.WifiHelper;
 
