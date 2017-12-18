@@ -347,9 +347,9 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK) {
-            if(mScanCuonaDialog.isShowing()) {
+            if(mScanCuonaDialog != null && mScanCuonaDialog.isShowing()) {
                 mScanCuonaDialog.dismiss();
-            } else if(mProgressDialog.isShowing()) {
+            } else if(mProgressDialog != null && mProgressDialog.isShowing()) {
                 mProgressDialog.dismiss();
             } else {
                 finish();
