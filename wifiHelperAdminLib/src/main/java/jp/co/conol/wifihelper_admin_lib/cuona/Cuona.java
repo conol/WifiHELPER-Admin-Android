@@ -169,13 +169,13 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
         }
     }
 
-    public void setReadLogMessage(String message) {
-        mReadLogMessage = message;
-    }
+//    public void setReadLogMessage(String message) {
+//        mReadLogMessage = message;
+//    }
 
-    public void setWriteLogMessage(String message) {
-        mWriteLogMessage = message;
-    }
+//    public void setWriteLogMessage(String message) {
+//        mWriteLogMessage = message;
+//    }
 
     public int readType(Intent intent) throws CuonaReaderException {
         setCuonaReaderTag(intent, true);
