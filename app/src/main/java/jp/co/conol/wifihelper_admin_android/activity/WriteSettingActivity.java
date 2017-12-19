@@ -197,7 +197,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         });
 
         // サーバーに登録されているオーナーがWifiHelperに利用可能なデバイスIDを取得
-        if (MyUtil.Network.isEnable(this) || WifiHelper.isEnable(WriteSettingActivity.this)) {
+        if (MyUtil.Network.isEnable(this)) {
 
             // 読み込みダイアログを表示
             final ProgressDialog progressDialog = new ProgressDialog(WriteSettingActivity.this);

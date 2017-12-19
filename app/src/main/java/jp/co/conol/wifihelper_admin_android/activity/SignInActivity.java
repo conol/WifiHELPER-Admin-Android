@@ -57,7 +57,7 @@ public class SignInActivity extends AppCompatActivity {
             SignIn signIn = new SignIn(emailString, passwordString);
 
             // ログイン処理
-            if (MyUtil.Network.isEnable(this) || WifiHelper.isEnable(SignInActivity.this)) {
+            if (MyUtil.Network.isEnable(this)) {
 
                 // 読み込みダイアログを表示
                 final ProgressDialog progressDialog = new ProgressDialog(SignInActivity.this);

@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         CuonaUtil.checkNfcSetting(this, mCuona);
 
         // サーバーに登録されているデバイスIDを取得
-        if (MyUtil.Network.isEnable(this) || WifiHelper.isEnable(MainActivity.this)) {
+        if (MyUtil.Network.isEnable(this)) {
 
             // 読み込みダイアログを表示
             final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);

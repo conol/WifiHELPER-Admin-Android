@@ -139,7 +139,6 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
             // アラームを受信するレシーバーを作成
             Intent alarmIntent = new Intent(context.getApplicationContext(), WifiExpiredBroadcastReceiver.class);
-            alarmIntent.putExtra("ssid", mSsid);
             PendingIntent pending = PendingIntent.getBroadcast(
                     context.getApplicationContext(),
                     0,
