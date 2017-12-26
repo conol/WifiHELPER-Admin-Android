@@ -341,7 +341,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
             return new Wifi(ssid, password, kind, days);
 
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new CuonaReaderException(e);
         }
@@ -537,7 +537,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
     }
 
     // デバイス一覧取得用のGETリクエスト
-    protected String get(String url, String appToken) {
+    private String get(String url, String appToken) {
         HttpURLConnection urlCon;
         InputStream in;
 

@@ -228,6 +228,20 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
             try {
                 mCuonaReaderTag = getReadableTagFromIntent(mNfcTouchIntent);
 
+                // サービスIDが書き込まれているか確認
+                if(!Objects.equals(Constants.Urls.SERVICE_KEY, "") && mCuonaReaderTag != null) {
+                    try {
+                        JSONObject readJson = new JSONObject(mCuonaReaderTag.getJSONString());
+                        if (!Objects.equals(readJson.getJSONObject(Constants.Urls.SERVICE_JSON_NAME).getString("id"), Constants.Urls.SERVICE_KEY )) {
+                            mCuonaReaderTag = null;
+                            return;
+                        }
+                    } catch (JSONException e) {
+                        mCuonaReaderTag = null;
+                        return;
+                    }
+                }
+
                 // ログ送信
                 if(sendLog) sendReadLog(mCuonaReaderTag);
 
