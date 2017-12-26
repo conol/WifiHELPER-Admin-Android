@@ -9,7 +9,6 @@ class Constants {
     static class Urls {
 
         // サービス
-        static final String SERVICE_NAME = "Wi-Fi HELPER";   // サービス名
         static final String SERVICE_JSON_NAME = "wifi";   // jsonに書き込まれているサービス名
         static final String SERVICE_KEY = "H7Pa7pQaVxxG";   // サービスキー
 
