@@ -249,8 +249,6 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         if(mCuona != null) mCuona.disableForegroundDispatch(this);
     }
 
-
-
     @Override
     protected void onNewIntent(final Intent intent) {
         if(mScanCuonaDialog.isShowing()) {
