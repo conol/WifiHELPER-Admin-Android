@@ -379,7 +379,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
     // 書き込みに必要なパスワード情報とAppTokenが保存されているか否かを返す関数
     public static boolean hasToken(Context context) {
-        return getString(context, "devicePassword") != null && getString(context, "appToken") != null;
+        return getString(context, "appToken") != null;
     }
 
     @Override
@@ -393,6 +393,8 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
         String requestJsonString = null;
         JSONObject json = null;
         String responseJsonString = null;
+        String responseJsonDataString = null;
+        JSONObject jsonObject = null;
         Type type = null;
         boolean isDevelopment = false;
 
@@ -405,8 +407,12 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     requestJsonString = gson.toJson(mSignIn);
                     responseJsonString = post(endPoint + apiUrl, null, requestJsonString);
 
+                    // APIレスポンスからdata部分を取得
+                    jsonObject = new JSONObject(responseJsonString);
+                    responseJsonDataString = jsonObject.getString("data");
+
                     // 保存用のオーナー情報
-                    OwnerPrivate ownerPrivate = gson.fromJson(responseJsonString, OwnerPrivate.class);
+                    OwnerPrivate ownerPrivate = gson.fromJson(responseJsonDataString, OwnerPrivate.class);
                     type = new TypeToken<Owner>(){}.getType();
 
                     // 書き込みに必要なパスワード情報を端末に保存
@@ -429,10 +435,14 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     responseJsonString = get(endPoint + apiUrl, appToken);
                     type = new TypeToken<ArrayList<String>>(){}.getType();
 
+                    // APIレスポンスからdata部分を取得
+                    jsonObject = new JSONObject(responseJsonString);
+                    responseJsonDataString = jsonObject.getString("data");
+
                     List<String> availableDeviceIdList = new ArrayList<>();
-                    if(responseJsonString != null) {
+                    if(responseJsonDataString != null) {
                         try {
-                            JSONArray jsonArray = new JSONArray(responseJsonString);
+                            JSONArray jsonArray = new JSONArray(responseJsonDataString);
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jRec = jsonArray.getJSONObject(i);
                                 if(isDevelopment && !jRec.getBoolean("is_development")) continue;   // 開発版鍵のときはCUONA開発版のデバイスID全てを取得
@@ -445,7 +455,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     }
 
                     // デバイスのオブジェクト一覧のjsonをデバイスIDのオブジェクト一覧に変更
-                    responseJsonString = gson.toJson(availableDeviceIdList);
+                    responseJsonDataString = gson.toJson(availableDeviceIdList);
                     break;
 
                 // オーナーがWifiHelperに利用可能な（書き込み可能な）デバイス一覧を取得
@@ -459,10 +469,14 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     responseJsonString = get(endPoint + apiUrl, getString(mContext, "appToken"));
                     type = new TypeToken<ArrayList<String>>(){}.getType();
 
+                    // APIレスポンスからdata部分を取得
+                    jsonObject = new JSONObject(responseJsonString);
+                    responseJsonDataString = jsonObject.getString("data");
+
                     List<String> ownersDeviceIdList = new ArrayList<>();
-                    if(responseJsonString != null) {
+                    if(responseJsonDataString != null) {
                         try {
-                            JSONArray jsonArray = new JSONArray(responseJsonString);
+                            JSONArray jsonArray = new JSONArray(responseJsonDataString);
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jRec = jsonArray.getJSONObject(i);
                                 if(isDevelopment && !jRec.getBoolean("is_development")) continue;   // 開発版鍵のときはCUONA開発版のデバイスID全てを取得
@@ -475,7 +489,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     }
 
                     // デバイスのオブジェクト一覧のjsonをデバイスIDのオブジェクト一覧に変更
-                    responseJsonString = gson.toJson(ownersDeviceIdList);
+                    responseJsonDataString = gson.toJson(ownersDeviceIdList);
                     break;
 
                 default:
@@ -487,7 +501,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
             onFailure(e);
         }
 
-        return gson.fromJson(responseJsonString, type);
+        return gson.fromJson(responseJsonDataString, type);
     }
 
     @Override
