@@ -21,6 +21,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -197,6 +200,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         });
 
         // サーバーに登録されているオーナーがWifiHelperに利用可能なデバイスIDを取得
+        final Gson gson = new Gson();
         if (MyUtil.Network.isEnable(this)) {
 
             // 読み込みダイアログを表示
@@ -215,6 +219,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                     // デバイス情報の取得失敗でエラーダイアログを表示
                     if(mOwnersDeviceIdList == null || mOwnersDeviceIdList.size() == 0) {
                         new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_exist_devise)).show();
+                    } else {
+                        MyUtil.SharedPref.saveString(WriteSettingActivity.this, "ownersDeviceIdList", gson.toJson(mOwnersDeviceIdList));
                     }
                 }
 
@@ -233,7 +239,11 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         }
         // ネットに未接続の場合はエラー
         else {
-            new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_network_disable)).show();
+            mOwnersDeviceIdList = gson.fromJson(MyUtil.SharedPref.getString(WriteSettingActivity.this, "ownersDeviceIdList"), new TypeToken<ArrayList<String>>(){}.getType());
+            if(mOwnersDeviceIdList == null || mOwnersDeviceIdList.size() == 0) {
+                new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_network_disable)).show();
+            }
+
         }
     }
 
