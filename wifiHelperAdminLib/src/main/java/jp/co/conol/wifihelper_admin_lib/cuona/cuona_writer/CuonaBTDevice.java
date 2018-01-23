@@ -206,6 +206,7 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
         } else {
             btState = BtState.ERROR;
             updateState(State.ERROR);
+            btConnection.disconnectRequest();
         }
     }
 
@@ -236,6 +237,7 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
         } else {
             btState = BtState.ERROR;
             updateState(State.ERROR);
+            btConnection.disconnectRequest();
         }
     }
 
