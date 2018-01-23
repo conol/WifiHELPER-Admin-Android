@@ -176,7 +176,7 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
     public void onCuonaBTConnected() {
         //btConnection.readRequest(CuonaBTConnection.CUONA_CHAR_UUID_SYSTEM_STATUS);
         if (btState == BtState.WJSON_CONNECT) {
-            sendPWProtect(PWCMD_ENTER_ADMIN, zeroPassword);
+            sendPWProtect(PWCMD_ENTER_ADMIN, savedPassword);
             btState = BtState.WJSON_LOGIN;
         } else if (btState == BtState.UNPRO_CONNECT) {
             sendPWProtect(PWCMD_ENTER_ADMIN, savedPassword);
