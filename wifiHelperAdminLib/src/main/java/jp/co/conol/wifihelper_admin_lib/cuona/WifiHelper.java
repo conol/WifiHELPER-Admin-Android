@@ -52,6 +52,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
     private AsyncCallback mAsyncCallback = null;
     private Context mContext = null;
+    private String mAppToken = null;
     private SignIn mSignIn = null;
     private WifiManager mWifiManager;
     private int mNetworkId = -1;
@@ -73,6 +74,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
     public WifiHelper setContext(Context context) {
         mContext = context;
+        mAppToken = getString(context, "appToken");
         return this;
     }
 
@@ -466,7 +468,7 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
                     } else {
                         apiUrl = "/api/owners/devices.json?service_key=H7Pa7pQaVxxG";
                     }
-                    responseJsonString = get(endPoint + apiUrl, getString(mContext, "appToken"));
+                    responseJsonString = get(endPoint + apiUrl, mAppToken);
                     type = new TypeToken<ArrayList<String>>(){}.getType();
 
                     // APIレスポンスからdata部分を取得
