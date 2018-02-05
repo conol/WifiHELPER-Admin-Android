@@ -114,7 +114,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
     }
 
     @Override
-    public void writeJSON(String json, String password, byte[] cuonaKey) {
+    public void writeJSON(String json, String password, int keyCode, byte[] cuonaKey) {
         byte[] pw = password == null ? null
                 : new CUONAPassword(password).getPasswordArray(4);
 
@@ -137,7 +137,7 @@ public class CuonaWritableT2 extends CuonaWritableTag {
 
             byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
 
-            NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, cuonaKey);
+            NdefRecord rec = CuonaNDEF.createRecord(deviceId, jsonData, keyCode, cuonaKey);
             NdefMessage msg = new NdefMessage(rec);
             byte[] data = createNdefTLV(msg);
 

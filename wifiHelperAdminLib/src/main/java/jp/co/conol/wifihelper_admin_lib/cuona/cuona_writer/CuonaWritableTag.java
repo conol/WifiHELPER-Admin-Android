@@ -15,7 +15,7 @@ public abstract class CuonaWritableTag {
     private Handler handler;
     private Callback callback;
 
-    public abstract void writeJSON(String json, String password, byte[] cuonaKey);
+    public abstract void writeJSON(String json, String password, int keyCode, byte[] cuonaKey);
 
     public void setCallback(Callback callback) {
         this.handler = new Handler();

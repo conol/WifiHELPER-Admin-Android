@@ -19,9 +19,14 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
     private static final int LEGACY_DEVICEID_LENGTH = 7;
 
     private static final String TYPE_CUONA = "conol.jp:cuona";
-    private static final byte[] CUONA_MAGIC = {0x63, 0x6f, 0x04};
-    private static final int CUONA_DEVICEID_LENGTH_OFFSET = 3;
-    private static final int CUONA_DEVICEID_OFFSET = 5;
+    private static final byte CUONA_MAGIC_1 = 0x63;
+    private static final byte CUONA_MAGIC_2 = 0x6f;
+    private static final byte CUONA_MAGIC_3_NoCID = 0x04;
+    private static final byte CUONA_MAGIC_3 = 0x05;
+    private static final int CUONA_DEVICEID_LENGTH_OFFSET_NoCID = 3;
+    private static final int CUONA_DEVICEID_OFFSET_NoCID = 5;
+    private static final int CUONA_DEVICEID_LENGTH_OFFSET = 5;
+    private static final int CUONA_DEVICEID_OFFSET = 7;
     private static final int CUONA_PASSWORD_LENGTH = 16;
 
     private static final byte PWCMD_ENTER_ADMIN = 0;
@@ -74,18 +79,26 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
         if (payload.length < CUONA_DEVICEID_OFFSET) {
             return null;
         }
-        for (int i = 0; i < CUONA_MAGIC.length; i++) {
-            if (payload[i] != CUONA_MAGIC[i]) {
-                return null;
-            }
+        if (payload[0] != CUONA_MAGIC_1 || payload[1] != CUONA_MAGIC_2) {
+            return null;
         }
-        int deviceIdLength = payload[CUONA_DEVICEID_LENGTH_OFFSET] & 0xff;
-        if (payload.length < CUONA_DEVICEID_OFFSET + deviceIdLength) {
+        int deviceIdLengthOffset, deviceIdOffset;
+        if (payload[2] == CUONA_MAGIC_3_NoCID) {
+            deviceIdLengthOffset = CUONA_DEVICEID_LENGTH_OFFSET_NoCID;
+            deviceIdOffset = CUONA_DEVICEID_OFFSET_NoCID;
+        } else if (payload[2] == CUONA_MAGIC_3) {
+            deviceIdLengthOffset = CUONA_DEVICEID_LENGTH_OFFSET;
+            deviceIdOffset = CUONA_DEVICEID_OFFSET;
+        } else {
+            return null;
+        }
+        int deviceIdLength = payload[deviceIdLengthOffset] & 0xff;
+        if (payload.length < deviceIdOffset + deviceIdLength) {
             return null;
         }
 
-        return Arrays.copyOfRange(payload, CUONA_DEVICEID_OFFSET,
-                CUONA_DEVICEID_OFFSET + deviceIdLength);
+        return Arrays.copyOfRange(payload, deviceIdOffset,
+                deviceIdOffset + deviceIdLength);
     }
 
     private byte[] getDeviceId(Ndef ndef) throws IOException {
@@ -149,7 +162,7 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
     }
 
     @Override
-    public void writeJSON(String json, String password, byte[] cuonaKey) {
+    public void writeJSON(String json, String password, int keyCode, byte[] cuonaKey) {
         if (password == null) {
             savedPassword = zeroPassword;
         } else {
@@ -161,7 +174,7 @@ public class CuonaBTDevice extends CuonaWritableTag implements CuonaBTCallback {
             btState = BtState.WJSON_CONNECT;
 
             byte[] jsonData = ("JSON" + json).getBytes(StandardCharsets.UTF_8);
-            encryptedData = CuonaNDEF.encrypt(deviceId, jsonData, cuonaKey);
+            encryptedData = CuonaNDEF.encrypt(deviceId, jsonData, keyCode, cuonaKey);
             HexUtils.logd("encryptedData", encryptedData);
         } catch (IOException e) {
             e.printStackTrace();

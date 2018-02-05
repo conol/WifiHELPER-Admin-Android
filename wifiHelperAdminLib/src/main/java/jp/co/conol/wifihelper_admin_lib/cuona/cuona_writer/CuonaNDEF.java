@@ -17,18 +17,18 @@ class CuonaNDEF {
     private static final String CUONA_TAG_TYPE = "cuona";
     private static final byte CUONA_MAGIC_1 = 0x63;
     private static final byte CUONA_MAGIC_2 = 0x6f;
-    private static final byte CUONA_MAGIC_3 = 0x04;
+    private static final byte CUONA_MAGIC_3 = 0x05;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    static NdefRecord createRecord(byte[] deviceId, byte[] payload, byte[] cuonaKey)
+    static NdefRecord createRecord(byte[] deviceId, byte[] payload, int keyCode, byte[] cuonaKey)
             throws IOException {
 
-        byte[] all = encrypt(deviceId, payload, cuonaKey);
+        byte[] all = encrypt(deviceId, payload, keyCode, cuonaKey);
         return NdefRecord.createExternal(CUONA_TAG_DOMAIN, CUONA_TAG_TYPE, all);
     }
 
-    static byte[] encrypt(byte[] deviceId, byte[] payload, byte[] cuonaKey) throws IOException {
+    static byte[] encrypt(byte[] deviceId, byte[] payload, int keyCode, byte[] cuonaKey) throws IOException {
         byte[] iv;
         byte[] encryptedPayload;
 
@@ -53,6 +53,7 @@ class CuonaNDEF {
 
         byte[] header = new byte[] {
                 CUONA_MAGIC_1, CUONA_MAGIC_2, CUONA_MAGIC_3,
+                (byte) keyCode, (byte) (keyCode >> 8),
                 (byte) deviceId.length, (byte) iv.length
         };
 
