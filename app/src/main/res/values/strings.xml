@@ -8,6 +8,7 @@
     <string name="start_reading">NFCリーダーを起動する</string>
     <string name="connecting_wifi">利用可能なWi-Fiへ接続を行っています</string>
     <string name="progress_message">必要なデータを取得中です。</string>
+    <string name="logout">ログアウト</string>
 
     <!-- ログイン画面 -->
     <string name="sign_in_message">契約時のアカウントでログインしてください</string>

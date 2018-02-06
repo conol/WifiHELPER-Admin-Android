@@ -176,6 +176,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void onLogoutButtonClicked(View view) {
+        WifiHelper.deleteToken(this);
+        Intent intent = new Intent(this, SignInActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK) {

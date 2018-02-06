@@ -381,7 +381,13 @@ public class WifiHelper extends AsyncTask<WifiHelper.Task, Void, Object> {
 
     // 書き込みに必要なパスワード情報とAppTokenが保存されているか否かを返す関数
     public static boolean hasToken(Context context) {
-        return getString(context, "appToken") != null;
+        return getString(context, "appToken") != null && getString(context, "devicePassword") != null;
+    }
+
+    // 書き込みに必要なパスワード情報とAppTokenを破棄する関数
+    public static void deleteToken(Context context) {
+        saveString(context, "devicePassword", null);
+        saveString(context, "appToken", null);
     }
 
     @Override
