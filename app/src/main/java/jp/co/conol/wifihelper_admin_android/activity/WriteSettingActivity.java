@@ -294,6 +294,7 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
             // WifiHelperのサービスに登録されているオーナーのデバイスに、タッチされたNFCが含まれているか否か確認
             if (!mOwnersDeviceIdList.contains(deviceId)) {
                 new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_owners)).show();
+                mProgressDialog.dismiss();
             }
             // Wifi情報の書き込み
             else {

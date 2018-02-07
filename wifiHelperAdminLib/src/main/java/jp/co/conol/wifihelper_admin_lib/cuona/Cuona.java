@@ -97,7 +97,8 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
 
         mTechList = new String[][] {
                 // Typ2 2 Mifare UltraLight Seal, like NXP NTAG21x
-                new String[] { NfcA.class.getName(), MifareUltralight.class.getName(), Ndef.class.getName() },
+//                new String[] { NfcA.class.getName(), MifareUltralight.class.getName(), Ndef.class.getName() },
+                new String[] { NfcA.class.getName(), Ndef.class.getName() },
 
                 // Type 4 Dynamic, like ST M24SRxx
                 new String[] { NfcA.class.getName(), IsoDep.class.getName(), /*Ndef.class.getName()*/ },
@@ -211,7 +212,8 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
         CuonaWritableTag cuonaWritableTag = getWritableTagFromIntent(intent);
         if(cuonaWritableTag != null) {
             cuonaWritableTag.setCallback((CuonaWritableTag.Callback) context);
-            if(password == null) password = "0 0 0 0";
+//            if(password == null) password = "0 0 0 0";
+            password = null;
             cuonaWritableTag.writeJSON(json, password, Keys.keyCode, Keys.cuonaKey32B);
             return true;
         } else {
