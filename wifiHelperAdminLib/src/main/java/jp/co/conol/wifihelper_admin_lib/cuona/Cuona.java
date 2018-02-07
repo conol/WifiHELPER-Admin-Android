@@ -97,7 +97,6 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
 
         mTechList = new String[][] {
                 // Typ2 2 Mifare UltraLight Seal, like NXP NTAG21x
-//                new String[] { NfcA.class.getName(), MifareUltralight.class.getName(), Ndef.class.getName() },
                 new String[] { NfcA.class.getName(), Ndef.class.getName() },
 
                 // Type 4 Dynamic, like ST M24SRxx
