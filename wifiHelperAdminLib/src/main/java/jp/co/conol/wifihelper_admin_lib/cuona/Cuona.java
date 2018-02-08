@@ -211,8 +211,7 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
         CuonaWritableTag cuonaWritableTag = getWritableTagFromIntent(intent);
         if(cuonaWritableTag != null) {
             cuonaWritableTag.setCallback((CuonaWritableTag.Callback) context);
-//            if(password == null) password = "0 0 0 0";
-            password = null;
+            if(password == null) password = null;
             cuonaWritableTag.writeJSON(json, password, Keys.keyCode, Keys.cuonaKey32B);
             return true;
         } else {
