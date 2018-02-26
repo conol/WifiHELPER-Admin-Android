@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ScanCuonaDialog mScanCuonaDialog;
     private Cuona mCuona;
-    private List<String> mAvailableDeviceIdList = new ArrayList<>();    // WifiHelperのサービスに登録されているデバイスのID一覧
     private final int PERMISSION_REQUEST_CODE = 1000;
 
     @Override
@@ -58,52 +57,6 @@ public class MainActivity extends AppCompatActivity {
 
         // nfcがオフの場合はダイアログを表示
         CuonaUtil.checkNfcSetting(this, mCuona);
-
-        // サーバーに登録されているデバイスIDを取得
-        final Gson gson = new Gson();
-        if (MyUtil.Network.isEnable(this)) {
-
-            // 読み込みダイアログを表示
-            final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-            progressDialog.setMessage(getString(R.string.progress_message));
-            progressDialog.show();
-
-            new WifiHelper(new WifiHelper.AsyncCallback() {
-                @Override
-                public void onSuccess(Object object) {
-                    mAvailableDeviceIdList = (List<String>) object;
-
-                    // 読み込みダイアログを非表示
-                    progressDialog.dismiss();
-
-                    // デバイス情報の取得失敗でエラーダイアログを表示
-                    if(mAvailableDeviceIdList == null || mAvailableDeviceIdList.size() == 0) {
-                        new SimpleAlertDialog(MainActivity.this, getString(R.string.error_fail_get_device_ids)).show();
-                    } else {
-                        MyUtil.SharedPref.saveString(MainActivity.this, "availableDeviceIdList", gson.toJson(mAvailableDeviceIdList));
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            // 読み込みダイアログを非表示
-                            progressDialog.dismiss();
-
-                            new SimpleAlertDialog(MainActivity.this, getString(R.string.error_fail_get_device_ids)).show();
-                        }
-                    });
-                }
-            }).execute(WifiHelper.Task.GetAvailableDevices);
-        }
-        // ネットに未接続の場合はエラー
-        else {
-            mAvailableDeviceIdList = gson.fromJson(MyUtil.SharedPref.getString(MainActivity.this, "availableDeviceIdList"), new TypeToken<ArrayList<String>>(){}.getType());
-            if(mAvailableDeviceIdList == null || mAvailableDeviceIdList.size() == 0) {
-                new SimpleAlertDialog(MainActivity.this, getString(R.string.error_network_disable)).show();
-            }
-        }
     }
 
     @Override
@@ -137,24 +90,14 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // サーバーに登録されているWifiHelper利用可能なデバイスに、タッチされたNFCが含まれているか否か確認
-            if(mAvailableDeviceIdList != null && deviceId != null) {
-                if (!mAvailableDeviceIdList.contains(deviceId)) {
-                    new SimpleAlertDialog(MainActivity.this, getString(R.string.error_not_exist_in_devise_ids)).show();
-                }
-                // 利用可能なら次のページへWifi情報を渡して移動
-                else {
-                    Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
-                    writeSettingIntent.putExtra("ssid", wifi.getSsid());
-                    writeSettingIntent.putExtra("pass", wifi.getPassword());
-                    writeSettingIntent.putExtra("wifiKind", wifi.getKind());
-                    writeSettingIntent.putExtra("expireDate", wifi.getDays());
-                    writeSettingIntent.putExtra("deviceType", deviceType);
-                    startActivity(writeSettingIntent);
-                }
-            } else {
-                new SimpleAlertDialog(MainActivity.this, getString(R.string.error_incorrect_touch_nfc)).show();
-            }
+            // Wifi情報を渡して移動
+            Intent writeSettingIntent = new Intent(MainActivity.this, WriteSettingActivity.class);
+            writeSettingIntent.putExtra("ssid", wifi.getSsid());
+            writeSettingIntent.putExtra("pass", wifi.getPassword());
+            writeSettingIntent.putExtra("wifiKind", wifi.getKind());
+            writeSettingIntent.putExtra("expireDate", wifi.getDays());
+            writeSettingIntent.putExtra("deviceType", deviceType);
+            startActivity(writeSettingIntent);
 
             mScanCuonaDialog.dismiss();
         }
