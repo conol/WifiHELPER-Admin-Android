@@ -26,6 +26,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -42,7 +43,7 @@ import jp.co.conol.wifihelper_admin_lib.cuona.cuona_reader.CuonaReaderException;
 import jp.co.conol.wifihelper_admin_lib.cuona.cuona_writer.CuonaWritableTag;
 import jp.co.conol.wifihelper_admin_lib.cuona.wifi_helper_model.Wifi;
 
-public class WriteSettingActivity extends AppCompatActivity implements TextWatcher, CuonaWritableTag.Callback {
+public class WriteSettingActivity extends AppCompatActivity implements CuonaWritableTag.Callback {
 
     private ScanCuonaDialog mScanCuonaDialog;
     private ProgressDialog mProgressDialog;
@@ -52,7 +53,6 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
     private int mWifiKind;
     private Integer mExpireDate;
     private int mDeviceType;
-    List<String> mOwnersDeviceIdList = new ArrayList<>();    // WifiHelperのサービスに登録されているオーナーのデバイスID一覧
     @BindView(R.id.ssidEditText) EditText mSsidEditText;
     @BindView(R.id.passEditText) EditText mPassEditText;
     @BindView(R.id.wepTextView) TextView mWepTextView;
@@ -116,10 +116,16 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
         }
 
         // ssidかpasswordが空欄ならスキャンを開始できないようにする
-        setEnableStartScanButton(mSsidEditText.getText().toString());
-        setEnableStartScanButton(mPassEditText.getText().toString());
-        mSsidEditText.addTextChangedListener(this);
-        mPassEditText.addTextChangedListener(this);
+        mSsidEditText.addTextChangedListener(new GenericTextWatcher(mSsidEditText));
+        mPassEditText.addTextChangedListener(new GenericTextWatcher(mPassEditText));
+        if(Objects.equals(mSsidEditText.getText().toString(), "")) {
+            mStartScanButton.setEnabled(false);
+            mStartScanButton.setAlpha(0.5f);
+        }
+        if(mWifiKind != WifiHelper.FREE && Objects.equals(mPassEditText.getText().toString(), "")) {
+            mStartScanButton.setEnabled(false);
+            mStartScanButton.setAlpha(0.5f);
+        }
 
         // wifiの種類をクリックした場合、クリックによってボタンの表示を切り替え
         View.OnClickListener wifiKindClickListener = new View.OnClickListener(){
@@ -198,53 +204,6 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                 return false;
             }
         });
-
-        // サーバーに登録されているオーナーがWifiHelperに利用可能なデバイスIDを取得
-        final Gson gson = new Gson();
-        if (MyUtil.Network.isEnable(this)) {
-
-            // 読み込みダイアログを表示
-            final ProgressDialog progressDialog = new ProgressDialog(WriteSettingActivity.this);
-            progressDialog.setMessage(getString(R.string.progress_message));
-            progressDialog.show();
-
-            new WifiHelper(new WifiHelper.AsyncCallback() {
-                @Override
-                public void onSuccess(Object object) {
-                    mOwnersDeviceIdList = (List<String>) object;
-
-                    // 読み込みダイアログを非表示
-                    progressDialog.dismiss();
-
-                    // デバイス情報の取得失敗でエラーダイアログを表示
-                    if(mOwnersDeviceIdList == null || mOwnersDeviceIdList.size() == 0) {
-                        new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_exist_devise)).show();
-                    } else {
-                        MyUtil.SharedPref.saveString(WriteSettingActivity.this, "ownersDeviceIdList", gson.toJson(mOwnersDeviceIdList));
-                    }
-                }
-
-                @Override
-                public void onFailure(Exception e) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            // 読み込みダイアログを非表示
-                            progressDialog.dismiss();
-
-                            new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_exist_devise)).show();
-                        }
-                    });
-                }
-            }).setContext(WriteSettingActivity.this).execute(WifiHelper.Task.GetOwnersDevices);
-        }
-        // ネットに未接続の場合はエラー
-        else {
-            mOwnersDeviceIdList = gson.fromJson(MyUtil.SharedPref.getString(WriteSettingActivity.this, "ownersDeviceIdList"), new TypeToken<ArrayList<String>>(){}.getType());
-            if(mOwnersDeviceIdList == null || mOwnersDeviceIdList.size() == 0) {
-                new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_network_disable)).show();
-            }
-
-        }
     }
 
     @Override
@@ -280,26 +239,8 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
                 mExpireDate = null;
             }
 
-            // nfc読み込み処理実行（デバイスIDを取得）
-            String deviceId = null;
-            try {
-                deviceId = mCuona.readDeviceId(intent);
-            } catch (CuonaReaderException e) {
-                e.printStackTrace();
-                new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_exist_in_devise_ids)).show();
-                mScanCuonaDialog.dismiss();
-                return;
-            }
-
-            // WifiHelperのサービスに登録されているオーナーのデバイスに、タッチされたNFCが含まれているか否か確認
-            if (!mOwnersDeviceIdList.contains(deviceId)) {
-                new SimpleAlertDialog(WriteSettingActivity.this, getString(R.string.error_not_owners)).show();
-                mProgressDialog.dismiss();
-            }
             // Wifi情報の書き込み
-            else {
-                WifiHelper.writeWifiSetting(intent, WriteSettingActivity.this, mCuona, new Wifi(mSsid, mPassword, mWifiKind, mExpireDate));
-            }
+            WifiHelper.writeWifiSetting(intent, WriteSettingActivity.this, mCuona, new Wifi(mSsid, mPassword, mWifiKind, mExpireDate));
         }
     }
 
@@ -371,62 +312,91 @@ public class WriteSettingActivity extends AppCompatActivity implements TextWatch
 
     private void setWpaWifi() {
         mWifiKind = 1;
+        mPassEditText.setEnabled(true);
+        mPassEditText.setAlpha(1f);
         mWepTextView.setBackgroundResource(R.drawable.style_wep_button_disable);
         mWepTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_enable);
         mWpaTextView.setTextColor(Color.WHITE);
         mNoneTextView.setBackgroundResource(R.drawable.style_none_button_disable);
         mNoneTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
+        if(Objects.equals(mPassEditText.getText().toString(), "")) {
+            mStartScanButton.setEnabled(false);
+            mStartScanButton.setAlpha(0.5f);
+        }
     }
 
     private void setWepWifi() {
         mWifiKind = 2;
+        mPassEditText.setEnabled(true);
+        mPassEditText.setAlpha(1f);
         mWepTextView.setBackgroundResource(R.drawable.style_wep_button_enable);
         mWepTextView.setTextColor(Color.WHITE);
         mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_disable);
         mWpaTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mNoneTextView.setBackgroundResource(R.drawable.style_none_button_disable);
         mNoneTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
+        if(Objects.equals(mPassEditText.getText().toString(), "")) {
+            mStartScanButton.setEnabled(false);
+            mStartScanButton.setAlpha(0.5f);
+        }
     }
 
     private void setNoneWifi() {
         mWifiKind = 3;
+        mPassEditText.setEnabled(false);
+        mPassEditText.setAlpha(0.5f);
         mWepTextView.setBackgroundResource(R.drawable.style_wep_button_disable);
         mWepTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mWpaTextView.setBackgroundResource(R.drawable.style_wpa_button_disable);
         mWpaTextView.setTextColor(ContextCompat.getColor(WriteSettingActivity.this, R.color.darkGray));
         mNoneTextView.setBackgroundResource(R.drawable.style_none_button_enable);
         mNoneTextView.setTextColor(Color.WHITE);
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-    }
-
-    @Override
-    public void afterTextChanged(Editable editable) {
-        String inputString = editable.toString();
-
-        // ssidかpasswordが空欄ならスキャンを開始できないようにする
-        setEnableStartScanButton(inputString);
-
-        // 50文字入力されたら通知（それ以上は入力不可）
-        if(50 == inputString.length()) {
-            Toast.makeText(this, getString(R.string.edit_text_limit_toast), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void setEnableStartScanButton(String string) {
-        if(string.length() == 0) {
-            mStartScanButton.setEnabled(false);
-            mStartScanButton.setAlpha(0.5f);
-        } else {
+        if(!Objects.equals(mSsidEditText.getText().toString(), "")) {
             mStartScanButton.setEnabled(true);
             mStartScanButton.setAlpha(1f);
         }
+    }
+
+    private class GenericTextWatcher implements TextWatcher {
+
+        private View view;
+
+        private GenericTextWatcher(View view) {
+            this.view = view;
+        }
+
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        public void onTextChanged(CharSequence string, int start, int before, int count) {
+
+            // ssidかpasswordが空欄ならスキャンを開始できないようにする
+            switch (view.getId()) {
+                case R.id.ssidEditText:
+                    if(string.length() != 0 && !Objects.equals(mPassEditText.getText().toString(), "")
+                            || string.length() != 0 && mWifiKind == WifiHelper.FREE) {
+                        mStartScanButton.setEnabled(true);
+                        mStartScanButton.setAlpha(1f);
+                    } else {
+                        mStartScanButton.setEnabled(false);
+                        mStartScanButton.setAlpha(0.5f);
+                    }
+                    break;
+                case R.id.passEditText:
+                    if(string.length() != 0 && !Objects.equals(mSsidEditText.getText().toString(), "")
+                            || mWifiKind == WifiHelper.FREE) {
+                        mStartScanButton.setEnabled(true);
+                        mStartScanButton.setAlpha(1f);
+                    } else {
+                        mStartScanButton.setEnabled(false);
+                        mStartScanButton.setAlpha(0.5f);
+                    }
+                    break;
+            }
+        }
+
+        public void afterTextChanged(Editable editable) {
+        }
+
     }
 }

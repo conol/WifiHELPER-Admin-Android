@@ -77,11 +77,11 @@ public class MainActivity extends AppCompatActivity {
 
             // nfc読み込み処理実行
             int deviceType;
-            String deviceId;
+//            String deviceId;
             Wifi wifi;
             try {
                 deviceType = mCuona.readType(intent);
-                deviceId = mCuona.readDeviceId(intent);
+//                deviceId = mCuona.readDeviceId(intent);
                 wifi = WifiHelper.readWifiSetting(intent, mCuona);
             } catch (CuonaReaderException e) {
                 e.printStackTrace();
