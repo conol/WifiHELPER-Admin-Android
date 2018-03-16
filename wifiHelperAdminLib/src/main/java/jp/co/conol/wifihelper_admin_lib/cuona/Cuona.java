@@ -21,6 +21,7 @@ import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcA;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -518,6 +519,9 @@ public class Cuona extends AsyncTask<String[][], Void, JSONObject> {
             con.setRequestProperty("Accept-Language", "jp");
             con.setDoOutput(true);
             con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            con.setRequestProperty("X-USER-OS", "Android");
+            con.setRequestProperty("X-USER-OS-VERSION", Build.VERSION.RELEASE);
+            con.setRequestProperty("X-USER-MODEL", Build.MODEL);
             OutputStream os = con.getOutputStream();
             PrintStream ps = new PrintStream(os);
             ps.print(body);
