@@ -13,8 +13,8 @@ class Constants {
         static final String SERVICE_KEY = "H7Pa7pQaVxxG";   // サービスキー
 
         // デバイスマネージャーサーバー
-        static final String CDMS_URL = "http://manage-dev.cuona.io";   // デバイスマネージャーURL（開発）
-//        static final String CDMS_URL = "https://manage.cuona.io";   // デバイスマネージャーURL（本番）
+//        static final String CDMS_URL = "http://manage-dev.cuona.io";   // デバイスマネージャーURL（開発）
+        static final String CDMS_URL = "https://manage.cuona.io";   // デバイスマネージャーURL（本番）
 
         // ログ
 //        static final String LOG_URL = ""; // ログを送らない
